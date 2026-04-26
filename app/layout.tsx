@@ -15,8 +15,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SlayQL | MDS06",
   description: "An Agentic Approach for Text-2-SQL problem",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
-
 
 export default function RootLayout({
   children,
