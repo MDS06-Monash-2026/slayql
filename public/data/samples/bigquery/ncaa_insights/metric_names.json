@@ -1,0 +1,1 @@
+[["tm_to_pct","TO%","Turnovers","Off",true,1,"off_to_pct"],["opp_to_pct","TO%","Turnovers","Def",false,1,"def_to_pct"],["tm_drb_pct","DRB%","Rebounding","Def",false,1,"drb_pct"],["tm_orb_pct","ORB%","Rebounding","Off",false,1,"orb_pct"],["tm_efg_pct","eFG%","Shooting","Off",false,1,"off_efg_pct"]]
