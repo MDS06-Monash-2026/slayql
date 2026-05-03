@@ -7,6 +7,7 @@ import {
   Columns3, Rows3, Search, LayoutGrid, AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
+import SchemaPreviewSample from '@/app/components/SchemaPreviewSample';
 
 interface SampleData {
   columns: string[];
@@ -102,8 +103,9 @@ export default function BirdPage() {
         </div>
       </div>
 
-      {/* Two-pane layout */}
-      <div className="flex-1 flex overflow-hidden p-4 gap-4 z-10 relative">
+      <div className="flex-1 flex flex-col min-h-0 z-10 relative">
+        {/* Two-pane layout — 50% height (equal split with schema sample below) */}
+        <div className="flex-1 min-h-0 flex overflow-hidden p-4 gap-4">
         {/* LEFT PANE: File explorer */}
         <div className="w-80 flex flex-col bg-[#0a101d]/80 border border-cyan-900/30 rounded-2xl shadow-[0_0_20px_rgba(34,211,238,0.03)] backdrop-blur-xl overflow-hidden">
           
@@ -262,6 +264,14 @@ export default function BirdPage() {
               </div>
             </>
           )}
+        </div>
+        </div>
+
+        {/* Schema sample — 50% height; scroll inside if needed */}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden border-t border-white/5 px-4 pb-4 pt-2">
+          <div className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
+            <SchemaPreviewSample />
+          </div>
         </div>
       </div>
 
