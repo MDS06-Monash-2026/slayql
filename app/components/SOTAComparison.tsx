@@ -20,6 +20,33 @@ export default function SOTAComparison() {
     return null;
   };
 
+  const rankTheme = {
+    2: {
+      card: 'bg-[#0a101d]/80 border border-amber-400/40 shadow-[0_0_28px_rgba(251,191,36,0.14)]',
+      badge: 'bg-amber-500/18 text-amber-200 border-amber-400/50 shadow-[0_0_16px_rgba(251,191,36,0.22)]',
+      overall: 'text-amber-400 drop-shadow-[0_0_14px_rgba(251,191,36,0.32)]',
+      status: 'bg-amber-500/14 text-amber-200 border-amber-400/35',
+    },
+    3: {
+      card: 'bg-[#0a101d]/80 border border-violet-400/35 shadow-[0_0_28px_rgba(167,139,250,0.14)]',
+      badge: 'bg-violet-500/15 text-violet-300 border-violet-400/45 shadow-[0_0_14px_rgba(167,139,250,0.22)]',
+      overall: 'text-violet-400 drop-shadow-[0_0_12px_rgba(167,139,250,0.3)]',
+      status: 'bg-violet-500/12 text-violet-300 border-violet-400/30',
+    },
+    4: {
+      card: 'bg-[#0a101d]/80 border border-fuchsia-400/35 shadow-[0_0_28px_rgba(232,121,249,0.12)]',
+      badge: 'bg-fuchsia-500/15 text-fuchsia-300 border-fuchsia-400/45 shadow-[0_0_14px_rgba(232,121,249,0.2)]',
+      overall: 'text-fuchsia-400 drop-shadow-[0_0_12px_rgba(232,121,249,0.28)]',
+      status: 'bg-fuchsia-500/12 text-fuchsia-300 border-fuchsia-400/30',
+    },
+    5: {
+      card: 'bg-[#0a101d]/80 border border-teal-400/30 shadow-[0_0_28px_rgba(45,212,191,0.12)]',
+      badge: 'bg-teal-500/15 text-teal-300 border-teal-400/40 shadow-[0_0_14px_rgba(45,212,191,0.2)]',
+      overall: 'text-teal-400 drop-shadow-[0_0_12px_rgba(45,212,191,0.28)]',
+      status: 'bg-teal-500/12 text-teal-300 border-teal-400/28',
+    },
+  } as const;
+
   // Sorted: Our Model -> Replicated -> Undergoing
   const leaderboard = [
     { 
@@ -45,27 +72,27 @@ export default function SOTAComparison() {
       rank: 3, 
       model: "MCTS-SQL", 
       type: "Paper Baseline",
-      status: "undergoing",
+      status: "replicated",
       proposed: { spider: null, bird: 72.91 },
-      replicated: null,
+      replicated: { spider: null, bird: 55.28 },
     },
     { 
       id: "retrysql",
       rank: 4, 
       model: "RetrySQL", 
       type: "Paper Baseline",
-      status: "undergoing",
-      proposed: { spider: null, bird: 58.70 },
-      replicated: null,
+      status: "replicated",
+      proposed: { spider: 38.4, bird: 58.70 },
+      replicated: { spider: 35.72, bird: 35.72 },
     },
     { 
       id: "reforce",
       rank: 5, 
       model: "ReFoRCE", 
       type: "Paper Baseline",
-      status: "undergoing",
+      status: "replicated",
       proposed: { spider: 55.21, bird: null },
-      replicated: null,
+      replicated: { spider: 21.68, bird: null },
     },
   ];
 
@@ -207,6 +234,11 @@ export default function SOTAComparison() {
             const proposedOverall = getOverall(item.proposed);
             const replicatedOverall = item.replicated ? getOverall(item.replicated) : null;
             const activeOverall = isUndergoing ? proposedOverall : (replicatedOverall !== null ? replicatedOverall : proposedOverall);
+
+            const replicatedPalette =
+              isReplicated && item.rank >= 2 && item.rank <= 5
+                ? rankTheme[item.rank as 2 | 3 | 4 | 5]
+                : null;
             
             return (
               <div 
@@ -214,8 +246,10 @@ export default function SOTAComparison() {
                 className={`relative group grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center p-6 rounded-3xl transition-all duration-500 overflow-hidden backdrop-blur-xl ${
                   isDev 
                     ? 'bg-gradient-to-r from-cyan-950/40 via-[#0a101d]/90 to-fuchsia-950/40 border border-cyan-500/40 shadow-[0_0_30px_rgba(34,211,238,0.1)]' 
-                    : isReplicated 
-                      ? 'bg-[#0a101d]/80 border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.05)]'
+                    : isReplicated && replicatedPalette
+                      ? replicatedPalette.card
+                      : isReplicated
+                        ? 'bg-[#0a101d]/80 border border-white/10 shadow-[0_0_16px_rgba(255,255,255,0.04)]'
                       : 'bg-[#0a101d]/40 border border-white/5 opacity-80 hover:opacity-100 grayscale hover:grayscale-0'
                 }`}
               >
@@ -224,7 +258,10 @@ export default function SOTAComparison() {
                   <div className="flex items-center gap-4 mb-2">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-bold border ${
                       isDev ? 'bg-cyan-500/20 text-cyan-400 border-cyan-400/50 shadow-[0_0_15px_rgba(34,211,238,0.4)]' 
-                      : isReplicated ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                      : isReplicated && replicatedPalette
+                        ? replicatedPalette.badge
+                        : isReplicated
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                       : 'bg-white/5 text-white/40 border-white/10'
                     }`}>
                       #{item.rank}
@@ -247,12 +284,12 @@ export default function SOTAComparison() {
                       </span>
                     )}
                     {isReplicated && !isPartial && (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase border ${replicatedPalette ? replicatedPalette.status : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
                         <CheckCircle2 className="w-2.5 h-2.5" /> Replicated
                       </span>
                     )}
                     {isPartial && (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase border ${replicatedPalette ? replicatedPalette.status : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
                         <AlertCircle className="w-2.5 h-2.5" /> Partial Replication
                       </span>
                     )}
@@ -297,7 +334,10 @@ export default function SOTAComparison() {
                   {activeOverall !== null ? (
                     <span className={`text-2xl lg:text-3xl font-black tracking-tight ${
                       isDev ? 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]' 
-                      : isReplicated ? 'text-emerald-400' 
+                      : isReplicated && replicatedPalette
+                        ? replicatedPalette.overall
+                        : isReplicated
+                          ? 'text-emerald-400'
                       : 'text-white/40'
                     }`}>
                       {activeOverall.toFixed(1)}%
