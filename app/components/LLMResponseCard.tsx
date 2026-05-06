@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { Sparkles, ChevronDown, ChevronUp, Copy, Play, Check, Loader2 } from 'lucide-react';
+import { Sparkles, ChevronDown, ChevronUp, Copy, Play, Check, Loader2, Download } from 'lucide-react';
 
 interface Column {
   name: string;
@@ -14,6 +14,7 @@ interface Row {
 
 interface LLMResponseData {
   reasoning?: string;
+  summary?: string;
   sql: string;
   columns?: Column[];
   rows?: Row[];
@@ -22,6 +23,20 @@ interface LLMResponseData {
 interface LLMResponseCardProps {
   data: LLMResponseData;
   index?: number;
+}
+
+function toCsvCell(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  const s = String(value);
+  // RFC4180-ish: wrap if contains comma, quote, or newline
+  if (/[",\r\n]/.test(s)) return `"${s.replaceAll('"', '""')}"`;
+  return s;
+}
+
+function rowsToCsv(columns: Column[], rows: Row[]): string {
+  const header = columns.map((c) => toCsvCell(c.name)).join(',');
+  const lines = rows.map((r) => columns.map((c) => toCsvCell(r[c.name])).join(','));
+  return [header, ...lines].join('\r\n') + '\r\n';
 }
 
 // ─── QuickChart URL generator ──────────────────────────────
@@ -108,6 +123,21 @@ export default function LLMResponseCard({ data, index = 0 }: LLMResponseCardProp
     if (mode !== 'table') setChartLoading(true);
   };
 
+  const handleExportCsv = useCallback(() => {
+    if (!data.columns || !data.rows || data.rows.length === 0) return;
+    const csv = rowsToCsv(data.columns, data.rows);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `slayql-results-${index || 0}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, [data.columns, data.rows, index]);
+
   const handleChartLoad = () => setChartLoading(false);
   const handleChartError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     setChartLoading(false);
@@ -146,6 +176,21 @@ export default function LLMResponseCard({ data, index = 0 }: LLMResponseCardProp
         </div>
       )}
 
+      {/* Query summary */}
+      {data.summary && (
+        <div className="mb-4">
+          <div className="flex items-center gap-2 text-xs font-mono text-cyan-300/80">
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-cyan-500/10 border border-cyan-500/20">
+              <Sparkles className="w-3.5 h-3.5" />
+            </span>
+            <span>Query summary</span>
+          </div>
+          <div className="mt-2 p-4 rounded-2xl bg-white/[0.03] border border-white/5 text-xs leading-relaxed text-white/70">
+            {data.summary}
+          </div>
+        </div>
+      )}
+
       {/* SQL Code */}
       <div className="relative group">
         <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent rounded-2xl pointer-events-none" />
@@ -172,6 +217,18 @@ export default function LLMResponseCard({ data, index = 0 }: LLMResponseCardProp
           className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 flex items-center gap-2 text-xs font-medium text-white/70 hover:text-white"
         >
           <Copy className="w-3.5 h-3.5" /> Copy
+        </button>
+        <button
+          onClick={handleExportCsv}
+          disabled={!data.rows || !data.columns || data.rows.length === 0}
+          className={`px-4 py-2 rounded-xl transition-all duration-300 flex items-center gap-2 text-xs font-medium border ${
+            !data.rows || !data.columns || data.rows.length === 0
+              ? 'bg-white/5 text-white/20 border-white/10 cursor-not-allowed'
+              : 'bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 border-violet-500/25'
+          }`}
+          title="Export results to CSV"
+        >
+          <Download className="w-3.5 h-3.5" /> Export CSV
         </button>
         <button
           onClick={() => setShowResults(!showResults)}

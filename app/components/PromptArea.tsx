@@ -54,8 +54,16 @@ export default function PromptArea({
   const frameworkRef = useRef<HTMLDivElement>(null);
   const modelRef = useRef<HTMLDivElement>(null);
   const datasetRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const userInitial = username.charAt(0).toUpperCase();
+
+  const quickPrompts = [
+    'Show total revenue by product category for February 2025.',
+    'List the top 10 customers by total spend in the last 30 days.',
+    'Find products with no sales in the past quarter and their inventory count.',
+    'Compare daily order volume week-over-week for the last 8 weeks.',
+  ] as const;
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -122,6 +130,11 @@ ORDER BY total_revenue DESC;`;
     }
   };
 
+  const applyQuickPrompt = (text: string) => {
+    setPrompt(text);
+    requestAnimationFrame(() => textareaRef.current?.focus());
+  };
+
   return (
     <div className="flex flex-col h-full relative">
       {/* Conversation */}
@@ -147,6 +160,25 @@ ORDER BY total_revenue DESC;`;
                   </span>
                 )}
               </p>
+
+              {/* Quick prompts */}
+              <div className="mt-6 w-full max-w-2xl">
+                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/35 mb-2">
+                  Quick prompts
+                </div>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {quickPrompts.map((qp) => (
+                    <button
+                      key={qp}
+                      type="button"
+                      onClick={() => applyQuickPrompt(qp)}
+                      className="px-3 py-1.5 rounded-full text-xs text-white/70 bg-white/[0.04] border border-white/10 hover:bg-white/[0.06] hover:border-white/20 transition-all"
+                    >
+                      {qp}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : (
             <div className="space-y-10 pb-6 mt-auto">
@@ -183,6 +215,8 @@ ORDER BY total_revenue DESC;`;
                         <LLMResponseCard
                           data={{
                             reasoning: `1. Parse request\n2. Generate SQL using ${selectedFramework} with model ${selectedModel}\n3. Optimize query`,
+                            summary:
+                              "The query joins the 'products' table with 'order_items' using the product ID to associate each sale with its category. It then calculates the total sales for each category by summing the product of quantity and price for each line item and grouping the results by the 'category' column.",
                             sql: msg.sql,
                             columns: [
                               { name: 'category_name', type: 'VARCHAR' },
