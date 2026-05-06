@@ -61,7 +61,7 @@ function DataCell({ value }: { value: any }) {
   );
 }
 
-export default function Spider2LitePage() {
+export default function Spider2LitePage({ embedded = false }: { embedded?: boolean }) {
   const [selectedEngine, setSelectedEngine] = useState<Engine>('sqlite');
   const [index, setIndex] = useState<IndexDatabase[]>([]);
   const [expandedDb, setExpandedDb] = useState<string | null>(null);
@@ -131,11 +131,11 @@ export default function Spider2LitePage() {
   }, [error]);
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[#060b14] relative font-sans text-slate-300">
+    <div className={`flex flex-col overflow-hidden bg-[#060b14] relative font-sans text-slate-300 ${embedded ? 'h-full' : 'h-screen'}`}>
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/10 via-violet-900/10 to-fuchsia-900/10 pointer-events-none" />
 
       {/* Header */}
-      <div className="h-16 border-b border-white/5 bg-[#060b14]/70 backdrop-blur-2xl flex items-center px-6 justify-between z-50 shadow-lg relative">
+      <div className={`h-16 border-b border-white/5 bg-[#060b14]/70 backdrop-blur-2xl flex items-center px-6 justify-between z-50 shadow-lg relative ${embedded ? 'hidden' : ''}`}>
         <div className="flex items-center gap-4">
           <Link href="/?tab=data" className="flex items-center justify-center w-8 h-8 rounded-full bg-cyan-900/20 border border-cyan-500/30 hover:bg-cyan-500/20 hover:border-cyan-400 transition-all text-cyan-400">
             <ChevronLeft className="w-4 h-4" />
