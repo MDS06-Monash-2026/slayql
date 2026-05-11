@@ -1,9 +1,9 @@
 'use client';
 
-import { Home, Database, Trophy, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
+import { Home, Database, Trophy, ChevronLeft, ChevronRight, LogOut, Upload } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-type Tab = 'prompt' | 'data' | 'sota';
+type Tab = 'prompt' | 'data' | 'sota' | 'upload';
 
 interface SidebarProps {
   activeTab: Tab;
@@ -26,6 +26,7 @@ export default function Sidebar({ activeTab, setActiveTab, collapsed, onToggle }
   const menuItems = [
     { id: 'prompt', label: 'Text to SQL', icon: Home },
     { id: 'data', label: 'Explore', icon: Database },
+    { id: 'upload', label: 'My Data', icon: Upload },
     { id: 'sota', label: 'SOTA', icon: Trophy },
   ] as const;
 

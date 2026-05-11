@@ -6,10 +6,11 @@ import Sidebar from './Sidebar';
 import PromptArea from './PromptArea';
 import DataExploration from './DataExploration';
 import SOTAComparison from './SOTAComparison';
+import DataUpload from './DataUpload';
 import BirdPage from '../bird/page';
 import Spider2LitePage from '../spider2lite/page';
 
-type Tab = 'prompt' | 'data' | 'sota';
+type Tab = 'prompt' | 'data' | 'sota' | 'upload';
 
 const datasets = [
   { id: 'Spider2.0-Lite', name: 'Spider2.0-Lite' },
@@ -46,6 +47,8 @@ export default function MainApp() {
       setActiveTab('data');
     } else if (tabParam === 'sota') {
       setActiveTab('sota');
+    } else if (tabParam === 'upload') {
+      setActiveTab('upload');
     } else {
       setActiveTab('prompt');
     }
@@ -229,6 +232,7 @@ export default function MainApp() {
             )
           )}
           {activeTab === 'sota' && <SOTAComparison />}
+          {activeTab === 'upload' && <DataUpload />}
         </div>
       </div>
     </div>
