@@ -9,14 +9,14 @@ export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeDone, setWelcomeDone] = useState(false);
-  
+
   // 1. Add a loading state to prevent the login flash
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     const logged = localStorage.getItem('slayyyql_loggedIn');
     const done = localStorage.getItem('welcomeDone');
-    
+
     if (logged === 'true') {
       setIsLoggedIn(true);
       if (done !== 'true') {
@@ -26,7 +26,7 @@ export default function Home() {
         setShowWelcome(false);
       }
     }
-    
+
     // 2. We are done checking local storage
     setIsCheckingAuth(false);
   }, []);
