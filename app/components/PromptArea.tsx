@@ -373,7 +373,7 @@ ORDER BY total_revenue DESC;`;
 
   return (
     <div className="h-full min-h-0 flex gap-4 p-3 md:p-4">
-      <aside
+      {/* <aside
         className={`${
           schemaCollapsed ? 'w-12' : 'w-[320px]'
         } shrink-0 transition-all duration-300 bg-[#0a101d]/80 border border-white/10 rounded-3xl backdrop-blur-2xl overflow-hidden flex flex-col`}
@@ -575,7 +575,7 @@ ORDER BY total_revenue DESC;`;
             </div>
           </>
         )}
-      </aside>
+      </aside> */}
 
       <div className="flex-1 min-w-0 min-h-0 flex flex-col">
         <div className="flex-1 overflow-y-auto px-4 md:px-8 custom-scrollbar">
