@@ -300,8 +300,14 @@ export function SchemaGraph({
                 key={tbl.name}
                 className="sg-node-anim cursor-pointer"
                 style={{ animationDelay: `${i * 0.12}s` }}
-                onMouseEnter={() => onSelectTable?.(tbl.name)}
-                onMouseLeave={() => onSelectTable?.(null)}
+                onPointerEnter={(e) => {
+                  // Only treat as hover on devices with a real pointer (mouse/pen).
+                  // On touch, hover events race with click and would deselect on tap.
+                  if (e.pointerType !== 'touch') onSelectTable?.(tbl.name);
+                }}
+                onPointerLeave={(e) => {
+                  if (e.pointerType !== 'touch') onSelectTable?.(null);
+                }}
                 onClick={() => onSelectTable?.(tbl.name === highlight ? null : tbl.name)}
               >
                 {/* Outer glow */}
@@ -554,6 +560,16 @@ export function SchemaGraphModal({
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose, mobileSheetOpen]);
 
+  // On compact viewports (below lg) the side panel is hidden, so auto-open the
+  // bottom sheet whenever a table gets selected — otherwise the stats stay
+  // hidden behind a chip the user would have to tap again.
+  useEffect(() => {
+    if (!selected) return;
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(min-width: 1024px)').matches) return;
+    setMobileSheetOpen(true);
+  }, [selected]);
+
   const selectedTable = useMemo(
     () => (selected ? tables.find((t) => t.name === selected) ?? null : null),
     [selected, tables],
@@ -561,7 +577,7 @@ export function SchemaGraphModal({
 
   return (
     <div
-      className="fixed top-16 right-0 bottom-[72px] left-0 md:bottom-0 md:left-[var(--sidebar-w,240px)] z-[200] flex flex-col bg-[#060b14]/95 backdrop-blur-xl overflow-hidden animate-in fade-in duration-200"
+      className="fixed inset-0 md:top-16 md:left-[var(--sidebar-w,240px)] z-[200] flex flex-col bg-[#060b14]/95 backdrop-blur-xl overflow-hidden animate-in fade-in duration-200"
       style={{ transition: 'left 0.4s ease-in-out' }}
     >
       <style>{`
