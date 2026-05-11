@@ -1,42 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Login from './components/Login';
 import WelcomeAnimation from './components/WelcomeAnimation';
 import MainApp from './components/MainApp';
 
 export default function Home() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeDone, setWelcomeDone] = useState(false);
-  
-  // 1. Add a loading state to prevent the login flash
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    const logged = localStorage.getItem('slayyyql_loggedIn');
     const done = localStorage.getItem('welcomeDone');
-    
-    if (logged === 'true') {
-      setIsLoggedIn(true);
-      if (done !== 'true') {
-        setShowWelcome(true);
-      } else {
-        setWelcomeDone(true);
-        setShowWelcome(false);
-      }
-    }
-    
-    // 2. We are done checking local storage
-    setIsCheckingAuth(false);
-  }, []);
 
-  const handleLoginSuccess = () => {
-    localStorage.setItem('slayyyql_loggedIn', 'true');
-    localStorage.removeItem('welcomeDone');
-    setIsLoggedIn(true);
-    setShowWelcome(true);
-  };
+    if (done !== 'true') {
+      setShowWelcome(true);
+    } else {
+      setWelcomeDone(true);
+    }
+
+    setIsChecking(false);
+  }, []);
 
   const handleWelcomeComplete = () => {
     localStorage.setItem('welcomeDone', 'true');
@@ -44,19 +27,14 @@ export default function Home() {
     setWelcomeDone(true);
   };
 
-  // // 3. Return a blank screen (matching your background) while checking auth
-  // if (isCheckingAuth) {
-  //   return <div className="h-screen w-screen bg-[#060b14]" />;
-  // }
+  if (isChecking) {
+    return <div className="h-screen w-screen bg-[#060b14]" />;
+  }
 
-  // if (!isLoggedIn) {
-  //   return <Login onLogin={handleLoginSuccess} />;
-  // }
+  if (showWelcome && !welcomeDone) {
+    return <WelcomeAnimation onComplete={handleWelcomeComplete} />;
+  }
 
-  // if (showWelcome && !welcomeDone) {
-  //   return <WelcomeAnimation onComplete={handleWelcomeComplete} />;
-  // }
-  <WelcomeAnimation onComplete={handleWelcomeComplete} />
-
+  // 正常进入主应用
   return <MainApp />;
 }
