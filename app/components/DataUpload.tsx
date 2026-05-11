@@ -250,10 +250,8 @@ export default function DataUpload() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Schema graph modal
+  // Schema graph modal — only opens when user explicitly clicks "View Graph"
   const [graphModalId, setGraphModalId] = useState<string | null>(null);
-  const [autoOpenId, setAutoOpenId] = useState<string | null>(null);
-  const [freshGraph, setFreshGraph] = useState(false);
 
   // Upload state
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -303,17 +301,6 @@ export default function DataUpload() {
     }
   }, [datasets]);
 
-  // Auto-open the schema graph modal once a tracked dataset finishes parsing.
-  useEffect(() => {
-    if (!autoOpenId || graphModalId) return;
-    const target = datasets.find((d) => d.id === autoOpenId);
-    if (target?.status === 'ready' && target.tables?.length) {
-      setGraphModalId(autoOpenId);
-      setFreshGraph(true);
-      setAutoOpenId(null);
-    }
-  }, [datasets, autoOpenId, graphModalId]);
-
   const allDatasets = useMemo(() => [...BUILT_IN_DATASETS, ...datasets], [datasets]);
 
   const filteredDatasets = useMemo(() => {
@@ -362,7 +349,6 @@ export default function DataUpload() {
       setDropFlashKey((k) => k + 1);
     }
 
-    let isFirstInBatch = true;
     for (const file of accepted) {
       const ext = getExtension(file.name);
       const id = genId();
@@ -379,11 +365,6 @@ export default function DataUpload() {
         updatedAt: Date.now(),
       };
       setDatasets((prev) => [newDs, ...prev]);
-
-      if (isFirstInBatch) {
-        setAutoOpenId((prev) => prev ?? id);
-        isFirstInBatch = false;
-      }
 
       // Simulate async parsing
       const delay = 1200 + Math.random() * 1200;
@@ -466,7 +447,6 @@ export default function DataUpload() {
       updatedAt: Date.now(),
     };
     setDatasets((prev) => [newDs, ...prev]);
-    setAutoOpenId((prev) => prev ?? id);
     setConnName('');
     setConnString('');
     setConnTestResult(null);
@@ -646,9 +626,7 @@ export default function DataUpload() {
                   {isDragging ? 'Release to parse your database' : 'Drag & drop your database file'}
                 </h3>
                 <p className="text-white/40 text-xs sm:text-sm mt-1 max-w-md mx-auto">
-                  We&rsquo;ll instantly generate a visual{' '}
-                  <span className="text-cyan-300 font-medium">Schema Graph</span> mapping every table and foreign-key
-                  relationship &mdash; or{' '}
+                  Upload your SQLite database file to begin querying with natural language — or{' '}
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
@@ -849,10 +827,7 @@ export default function DataUpload() {
                   onOpenInExplore={d.route ? () => router.push(d.route!) : undefined}
                   onViewGraph={
                     d.source !== 'builtin' && d.status === 'ready' && (d.tables?.length ?? 0) > 0
-                      ? () => {
-                          setFreshGraph(false);
-                          setGraphModalId(d.id);
-                        }
+                      ? () => setGraphModalId(d.id)
                       : undefined
                   }
                 />
@@ -873,11 +848,7 @@ export default function DataUpload() {
             datasetSubtitle={subtitle}
             tables={target.tables as GraphTable[]}
             relationships={(target.relationships ?? []) as GraphRelationship[]}
-            freshlyGenerated={freshGraph}
-            onClose={() => {
-              setGraphModalId(null);
-              setFreshGraph(false);
-            }}
+            onClose={() => setGraphModalId(null)}
           />
         );
       })()}
