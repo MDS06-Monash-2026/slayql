@@ -2,7 +2,7 @@
 
 import { Database, Cloud, Sparkles, Crosshair, CheckCircle2, Clock, AlertCircle, Terminal, Radar } from 'lucide-react';
 import { useState, useEffect, useRef, useMemo } from 'react';
-import benchmarkRun from './sota-benchmark-run.json';
+import benchmarkRun from '@/data/sota-benchmark-run.json';
 
 // -----------------------------------------------------------------------------
 // Performance metrics (multi-axis benchmark)
@@ -67,15 +67,17 @@ export default function SOTAComparison() {
   }, [mounted, runComplete]);
 
   // Pull the current snapshot for each model from the JSON benchmark.
-  // Until the page is fully mounted, render checkpoint 0 (all zero) so the SVG
-  // animates from the center outward on first paint.
+  // SlayQL animates through every checkpoint (0 → final). The four baselines are
+  // pre-finalized — their JSON array contains only the final score, so we always
+  // read index 0 and they stay static for the duration of the run.
   const liveMetrics = useMemo(() => {
+    const finalOf = (arr: Checkpoint[]) => arr[arr.length - 1];
     const map: Record<BenchmarkModelId, Checkpoint> = {
       slayql:   BENCHMARK.models.slayql[mounted ? tick : 0],
-      autolink: BENCHMARK.models.autolink[mounted ? tick : 0],
-      mcts:     BENCHMARK.models.mcts[mounted ? tick : 0],
-      retrysql: BENCHMARK.models.retrysql[mounted ? tick : 0],
-      reforce:  BENCHMARK.models.reforce[mounted ? tick : 0],
+      autolink: finalOf(BENCHMARK.models.autolink),
+      mcts:     finalOf(BENCHMARK.models.mcts),
+      retrysql: finalOf(BENCHMARK.models.retrysql),
+      reforce:  finalOf(BENCHMARK.models.reforce),
     };
     return map;
   }, [tick, mounted]);

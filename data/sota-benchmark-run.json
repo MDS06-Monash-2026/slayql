@@ -1,0 +1,397 @@
+{
+  "name": "Multi-axis benchmark run",
+  "description": "Progressive evaluation across Spider 2.0-Lite + BIRD. SlayQL animates through 50 eased checkpoints; the four replicated baselines are static at their finalized scores.",
+  "intervalMs": 700,
+  "transitionMs": 1000,
+  "totalQueries": 547,
+  "models": {
+    "slayql": [
+      {
+        "executionAccuracy": 0,
+        "schemaRecall": 0,
+        "tokenEfficiency": 0,
+        "speed": 0,
+        "queriesEvaluated": 0
+      },
+      {
+        "executionAccuracy": 0.1,
+        "schemaRecall": 0,
+        "tokenEfficiency": 0,
+        "speed": 0,
+        "queriesEvaluated": 1
+      },
+      {
+        "executionAccuracy": 0.3,
+        "schemaRecall": 0,
+        "tokenEfficiency": 0,
+        "speed": 0,
+        "queriesEvaluated": 2
+      },
+      {
+        "executionAccuracy": 0.8,
+        "schemaRecall": 1,
+        "tokenEfficiency": 1,
+        "speed": 1,
+        "queriesEvaluated": 5
+      },
+      {
+        "executionAccuracy": 1.3,
+        "schemaRecall": 1,
+        "tokenEfficiency": 1,
+        "speed": 1,
+        "queriesEvaluated": 9
+      },
+      {
+        "executionAccuracy": 2.1,
+        "schemaRecall": 2,
+        "tokenEfficiency": 2,
+        "speed": 2,
+        "queriesEvaluated": 14
+      },
+      {
+        "executionAccuracy": 3,
+        "schemaRecall": 3,
+        "tokenEfficiency": 3,
+        "speed": 3,
+        "queriesEvaluated": 20
+      },
+      {
+        "executionAccuracy": 4.1,
+        "schemaRecall": 4,
+        "tokenEfficiency": 4,
+        "speed": 4,
+        "queriesEvaluated": 27
+      },
+      {
+        "executionAccuracy": 5.3,
+        "schemaRecall": 6,
+        "tokenEfficiency": 5,
+        "speed": 5,
+        "queriesEvaluated": 35
+      },
+      {
+        "executionAccuracy": 6.7,
+        "schemaRecall": 7,
+        "tokenEfficiency": 7,
+        "speed": 7,
+        "queriesEvaluated": 44
+      },
+      {
+        "executionAccuracy": 8.2,
+        "schemaRecall": 9,
+        "tokenEfficiency": 8,
+        "speed": 8,
+        "queriesEvaluated": 54
+      },
+      {
+        "executionAccuracy": 9.8,
+        "schemaRecall": 10,
+        "tokenEfficiency": 10,
+        "speed": 10,
+        "queriesEvaluated": 65
+      },
+      {
+        "executionAccuracy": 11.6,
+        "schemaRecall": 12,
+        "tokenEfficiency": 12,
+        "speed": 12,
+        "queriesEvaluated": 77
+      },
+      {
+        "executionAccuracy": 13.5,
+        "schemaRecall": 14,
+        "tokenEfficiency": 13,
+        "speed": 14,
+        "queriesEvaluated": 90
+      },
+      {
+        "executionAccuracy": 15.5,
+        "schemaRecall": 17,
+        "tokenEfficiency": 15,
+        "speed": 16,
+        "queriesEvaluated": 103
+      },
+      {
+        "executionAccuracy": 17.7,
+        "schemaRecall": 19,
+        "tokenEfficiency": 18,
+        "speed": 18,
+        "queriesEvaluated": 117
+      },
+      {
+        "executionAccuracy": 19.9,
+        "schemaRecall": 21,
+        "tokenEfficiency": 20,
+        "speed": 20,
+        "queriesEvaluated": 132
+      },
+      {
+        "executionAccuracy": 22.2,
+        "schemaRecall": 24,
+        "tokenEfficiency": 22,
+        "speed": 23,
+        "queriesEvaluated": 147
+      },
+      {
+        "executionAccuracy": 24.6,
+        "schemaRecall": 26,
+        "tokenEfficiency": 24,
+        "speed": 25,
+        "queriesEvaluated": 163
+      },
+      {
+        "executionAccuracy": 27,
+        "schemaRecall": 29,
+        "tokenEfficiency": 27,
+        "speed": 28,
+        "queriesEvaluated": 179
+      },
+      {
+        "executionAccuracy": 29.5,
+        "schemaRecall": 31,
+        "tokenEfficiency": 29,
+        "speed": 30,
+        "queriesEvaluated": 196
+      },
+      {
+        "executionAccuracy": 32.1,
+        "schemaRecall": 34,
+        "tokenEfficiency": 32,
+        "speed": 33,
+        "queriesEvaluated": 213
+      },
+      {
+        "executionAccuracy": 34.7,
+        "schemaRecall": 37,
+        "tokenEfficiency": 34,
+        "speed": 36,
+        "queriesEvaluated": 230
+      },
+      {
+        "executionAccuracy": 37.3,
+        "schemaRecall": 40,
+        "tokenEfficiency": 37,
+        "speed": 38,
+        "queriesEvaluated": 247
+      },
+      {
+        "executionAccuracy": 39.9,
+        "schemaRecall": 43,
+        "tokenEfficiency": 40,
+        "speed": 41,
+        "queriesEvaluated": 265
+      },
+      {
+        "executionAccuracy": 42.6,
+        "schemaRecall": 45,
+        "tokenEfficiency": 42,
+        "speed": 44,
+        "queriesEvaluated": 282
+      },
+      {
+        "executionAccuracy": 45.2,
+        "schemaRecall": 48,
+        "tokenEfficiency": 45,
+        "speed": 47,
+        "queriesEvaluated": 300
+      },
+      {
+        "executionAccuracy": 47.8,
+        "schemaRecall": 51,
+        "tokenEfficiency": 48,
+        "speed": 49,
+        "queriesEvaluated": 317
+      },
+      {
+        "executionAccuracy": 50.4,
+        "schemaRecall": 54,
+        "tokenEfficiency": 50,
+        "speed": 52,
+        "queriesEvaluated": 334
+      },
+      {
+        "executionAccuracy": 53,
+        "schemaRecall": 57,
+        "tokenEfficiency": 53,
+        "speed": 55,
+        "queriesEvaluated": 351
+      },
+      {
+        "executionAccuracy": 55.5,
+        "schemaRecall": 59,
+        "tokenEfficiency": 55,
+        "speed": 57,
+        "queriesEvaluated": 368
+      },
+      {
+        "executionAccuracy": 57.9,
+        "schemaRecall": 62,
+        "tokenEfficiency": 58,
+        "speed": 60,
+        "queriesEvaluated": 384
+      },
+      {
+        "executionAccuracy": 60.3,
+        "schemaRecall": 64,
+        "tokenEfficiency": 60,
+        "speed": 62,
+        "queriesEvaluated": 400
+      },
+      {
+        "executionAccuracy": 62.6,
+        "schemaRecall": 67,
+        "tokenEfficiency": 62,
+        "speed": 65,
+        "queriesEvaluated": 415
+      },
+      {
+        "executionAccuracy": 64.8,
+        "schemaRecall": 69,
+        "tokenEfficiency": 64,
+        "speed": 67,
+        "queriesEvaluated": 430
+      },
+      {
+        "executionAccuracy": 67,
+        "schemaRecall": 71,
+        "tokenEfficiency": 67,
+        "speed": 69,
+        "queriesEvaluated": 444
+      },
+      {
+        "executionAccuracy": 69,
+        "schemaRecall": 74,
+        "tokenEfficiency": 69,
+        "speed": 71,
+        "queriesEvaluated": 457
+      },
+      {
+        "executionAccuracy": 70.9,
+        "schemaRecall": 76,
+        "tokenEfficiency": 70,
+        "speed": 73,
+        "queriesEvaluated": 470
+      },
+      {
+        "executionAccuracy": 72.7,
+        "schemaRecall": 78,
+        "tokenEfficiency": 72,
+        "speed": 75,
+        "queriesEvaluated": 482
+      },
+      {
+        "executionAccuracy": 74.3,
+        "schemaRecall": 79,
+        "tokenEfficiency": 74,
+        "speed": 77,
+        "queriesEvaluated": 493
+      },
+      {
+        "executionAccuracy": 75.8,
+        "schemaRecall": 81,
+        "tokenEfficiency": 75,
+        "speed": 78,
+        "queriesEvaluated": 503
+      },
+      {
+        "executionAccuracy": 77.2,
+        "schemaRecall": 82,
+        "tokenEfficiency": 77,
+        "speed": 80,
+        "queriesEvaluated": 512
+      },
+      {
+        "executionAccuracy": 78.4,
+        "schemaRecall": 84,
+        "tokenEfficiency": 78,
+        "speed": 81,
+        "queriesEvaluated": 520
+      },
+      {
+        "executionAccuracy": 79.5,
+        "schemaRecall": 85,
+        "tokenEfficiency": 79,
+        "speed": 82,
+        "queriesEvaluated": 527
+      },
+      {
+        "executionAccuracy": 80.4,
+        "schemaRecall": 86,
+        "tokenEfficiency": 80,
+        "speed": 83,
+        "queriesEvaluated": 533
+      },
+      {
+        "executionAccuracy": 81.2,
+        "schemaRecall": 87,
+        "tokenEfficiency": 81,
+        "speed": 84,
+        "queriesEvaluated": 538
+      },
+      {
+        "executionAccuracy": 81.7,
+        "schemaRecall": 87,
+        "tokenEfficiency": 81,
+        "speed": 84,
+        "queriesEvaluated": 542
+      },
+      {
+        "executionAccuracy": 82.2,
+        "schemaRecall": 88,
+        "tokenEfficiency": 82,
+        "speed": 85,
+        "queriesEvaluated": 545
+      },
+      {
+        "executionAccuracy": 82.4,
+        "schemaRecall": 88,
+        "tokenEfficiency": 82,
+        "speed": 85,
+        "queriesEvaluated": 546
+      },
+      {
+        "executionAccuracy": 82.5,
+        "schemaRecall": 88,
+        "tokenEfficiency": 82,
+        "speed": 85,
+        "queriesEvaluated": 547
+      }
+    ],
+    "autolink": [
+      {
+        "executionAccuracy": 45.3,
+        "schemaRecall": 76,
+        "tokenEfficiency": 78,
+        "speed": 80,
+        "queriesEvaluated": 547
+      }
+    ],
+    "mcts": [
+      {
+        "executionAccuracy": 55.3,
+        "schemaRecall": 65,
+        "tokenEfficiency": 32,
+        "speed": 28,
+        "queriesEvaluated": 547
+      }
+    ],
+    "retrysql": [
+      {
+        "executionAccuracy": 35.7,
+        "schemaRecall": 58,
+        "tokenEfficiency": 48,
+        "speed": 52,
+        "queriesEvaluated": 547
+      }
+    ],
+    "reforce": [
+      {
+        "executionAccuracy": 21.7,
+        "schemaRecall": 70,
+        "tokenEfficiency": 45,
+        "speed": 50,
+        "queriesEvaluated": 547
+      }
+    ]
+  }
+}
