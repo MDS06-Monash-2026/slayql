@@ -641,18 +641,13 @@ export default function DataUpload() {
                 {ACCEPTED_EXTENSIONS.map((ext) => (
                   <span
                     key={ext}
-                    className={`text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                      ext === 'sqlite' || ext === 'db'
-                        ? 'border-cyan-400/40 bg-cyan-500/10 text-cyan-300'
-                        : 'border-white/10 bg-white/[0.03] text-white/50'
-                    }`}
+                    className={`text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border border-white/10 bg-white/[0.03] text-white/50`}
                   >
                     .{ext}
                   </span>
                 ))}
               </div>
 
-              <p className="text-[11px] text-white/30">Max {formatBytes(MAX_FILE_SIZE_BYTES)} per file</p>
             </div>
 
             {uploadErrors.length > 0 && (
