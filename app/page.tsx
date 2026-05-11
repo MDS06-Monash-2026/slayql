@@ -44,18 +44,19 @@ export default function Home() {
     setWelcomeDone(true);
   };
 
-  // 3. Return a blank screen (matching your background) while checking auth
-  if (isCheckingAuth) {
-    return <div className="h-screen w-screen bg-[#060b14]" />;
-  }
+  // // 3. Return a blank screen (matching your background) while checking auth
+  // if (isCheckingAuth) {
+  //   return <div className="h-screen w-screen bg-[#060b14]" />;
+  // }
 
-  if (!isLoggedIn) {
-    return <Login onLogin={handleLoginSuccess} />;
-  }
+  // if (!isLoggedIn) {
+  //   return <Login onLogin={handleLoginSuccess} />;
+  // }
 
-  if (showWelcome && !welcomeDone) {
-    return <WelcomeAnimation onComplete={handleWelcomeComplete} />;
-  }
+  // if (showWelcome && !welcomeDone) {
+  //   return <WelcomeAnimation onComplete={handleWelcomeComplete} />;
+  // }
+  <WelcomeAnimation onComplete={handleWelcomeComplete} />
 
   return <MainApp />;
 }
