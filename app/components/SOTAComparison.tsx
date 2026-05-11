@@ -2,6 +2,7 @@
 
 import { Database, Cloud, Sparkles, Crosshair, CheckCircle2, Clock, AlertCircle, Terminal, Radar } from 'lucide-react';
 import { useState, useEffect, useRef, useMemo } from 'react';
+import benchmarkRun from './sota-benchmark-run.json';
 
 // -----------------------------------------------------------------------------
 // Performance metrics (multi-axis benchmark)
@@ -15,6 +16,23 @@ interface ModelMetrics {
   tokenEfficiency: number;   // 0..100 (higher = fewer tokens / more compact)
   speed: number;             // 0..100 (higher = faster inference)
 }
+
+interface Checkpoint extends ModelMetrics {
+  queriesEvaluated: number;
+}
+
+type BenchmarkModelId = 'slayql' | 'autolink' | 'mcts' | 'retrysql' | 'reforce';
+
+const BENCHMARK = benchmarkRun as {
+  name: string;
+  description: string;
+  intervalMs: number;
+  transitionMs: number;
+  totalQueries: number;
+  models: Record<BenchmarkModelId, Checkpoint[]>;
+};
+
+const CHECKPOINT_COUNT = BENCHMARK.models.slayql.length;
 
 const MODEL_COLORS: Record<string, { stroke: string; fill: string; dim: string; chipBg: string; chipBorder: string; text: string }> = {
   slayql:   { stroke: '#22d3ee', fill: 'rgba(34, 211, 238, 0.22)',  dim: 'rgba(34, 211, 238, 0.08)',  chipBg: 'bg-cyan-500/10',    chipBorder: 'border-cyan-400/40',    text: 'text-cyan-300' },
@@ -30,9 +48,50 @@ export default function SOTAComparison() {
     new Set(['slayql', 'autolink', 'mcts', 'retrysql', 'reforce']),
   );
 
+  // Tick advances through the JSON benchmark checkpoints to make the radar feel live.
+  // Stops (no loop) once we reach the final checkpoint so the chart settles on the
+  // actual replication scores for inspection / screenshots.
+  const [tick, setTick] = useState(0);
+  const runComplete = tick >= CHECKPOINT_COUNT - 1;
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted || runComplete) return;
+    const id = setInterval(() => {
+      setTick((t) => Math.min(t + 1, CHECKPOINT_COUNT - 1));
+    }, BENCHMARK.intervalMs);
+    return () => clearInterval(id);
+  }, [mounted, runComplete]);
+
+  // Pull the current snapshot for each model from the JSON benchmark.
+  // Until the page is fully mounted, render checkpoint 0 (all zero) so the SVG
+  // animates from the center outward on first paint.
+  const liveMetrics = useMemo(() => {
+    const map: Record<BenchmarkModelId, Checkpoint> = {
+      slayql:   BENCHMARK.models.slayql[mounted ? tick : 0],
+      autolink: BENCHMARK.models.autolink[mounted ? tick : 0],
+      mcts:     BENCHMARK.models.mcts[mounted ? tick : 0],
+      retrysql: BENCHMARK.models.retrysql[mounted ? tick : 0],
+      reforce:  BENCHMARK.models.reforce[mounted ? tick : 0],
+    };
+    return map;
+  }, [tick, mounted]);
+
+  const runProgress = useMemo(() => {
+    // Pick SlayQL's queriesEvaluated as the "pacing" indicator since it represents the lead run.
+    const queries = liveMetrics.slayql.queriesEvaluated;
+    const pct = (queries / BENCHMARK.totalQueries) * 100;
+    return {
+      queries,
+      total: BENCHMARK.totalQueries,
+      pct,
+      runIndex: tick + 1,
+      runTotal: CHECKPOINT_COUNT,
+    };
+  }, [liveMetrics, tick]);
 
   const toggleModel = (id: string) => {
     setEnabledModels((prev) => {
@@ -251,14 +310,50 @@ export default function SOTAComparison() {
               <div className="min-w-0">
                 <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2 truncate">
                   R&amp;D Command Center
-                  <span className="inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Live
-                  </span>
+                  {runComplete ? (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded-full border border-cyan-400/40 bg-cyan-500/10 text-cyan-200">
+                      <CheckCircle2 className="w-2.5 h-2.5" />
+                      Run Complete
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      Live
+                    </span>
+                  )}
                 </h2>
                 <p className="text-[11px] sm:text-xs text-white/45 mt-0.5 font-mono">
-                  Multi-axis benchmarking · Real-time evaluation telemetry
+                  {runComplete
+                    ? 'Evaluation finished · Final replication scores below'
+                    : 'Multi-axis benchmarking · Real-time evaluation telemetry'}
                 </p>
+              </div>
+            </div>
+
+            {/* Run progress strip — synced with the JSON benchmark ticker */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 text-[10px] font-mono">
+                <span className="text-white/40 uppercase tracking-widest">Run</span>
+                <span className="text-cyan-300 tabular-nums">
+                  {String(runProgress.runIndex).padStart(2, '0')}
+                  <span className="text-white/30"> / {runProgress.runTotal}</span>
+                </span>
+              </div>
+              <div className="hidden sm:flex items-center gap-2 text-[10px] font-mono">
+                <span className="text-white/40 uppercase tracking-widest">Queries</span>
+                <span className="text-emerald-300 tabular-nums">
+                  {runProgress.queries.toLocaleString()}
+                  <span className="text-white/30"> / {runProgress.total.toLocaleString()}</span>
+                </span>
+              </div>
+              <div className="relative w-24 sm:w-32 h-1.5 rounded-full bg-white/[0.04] overflow-hidden border border-white/5">
+                <div
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-cyan-500 to-fuchsia-500 shadow-[0_0_10px_rgba(34,211,238,0.5)] rounded-full"
+                  style={{
+                    width: `${runProgress.pct}%`,
+                    transition: `width ${BENCHMARK.transitionMs}ms ease-out`,
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -266,15 +361,21 @@ export default function SOTAComparison() {
           <div className="grid grid-cols-1 xl:grid-cols-5 gap-px bg-white/5">
             <div className="xl:col-span-3 bg-[#0a101d]/90 p-4 sm:p-6">
               <PerformanceRadarChart
-                models={leaderboard}
+                models={leaderboard.map((m) => ({
+                  id: m.id,
+                  model: m.model,
+                  type: m.type,
+                  metrics: liveMetrics[m.id as BenchmarkModelId] ?? m.metrics,
+                }))}
                 enabled={enabledModels}
                 onToggle={toggleModel}
                 mounted={mounted}
+                transitionMs={BENCHMARK.transitionMs}
               />
             </div>
             <div className="xl:col-span-2 relative bg-black/40 p-0 h-[460px] md:h-[540px] xl:h-auto overflow-hidden">
               <div className="absolute inset-0">
-                <LiveEvaluationLog />
+                <LiveEvaluationLog frozen={runComplete} />
               </div>
             </div>
           </div>
@@ -321,11 +422,13 @@ function PerformanceRadarChart({
   enabled,
   onToggle,
   mounted,
+  transitionMs = 800,
 }: {
   models: RadarModelLite[];
   enabled: Set<string>;
   onToggle: (id: string) => void;
   mounted: boolean;
+  transitionMs?: number;
 }) {
   const SIZE = 420;
   const CX = SIZE / 2;
@@ -454,7 +557,7 @@ function PerformanceRadarChart({
                   strokeOpacity={isEnabled ? 0.9 : 0.2}
                   strokeWidth={isEnabled ? 2 : 1}
                   style={{
-                    transition: 'd 1s cubic-bezier(0.22, 1, 0.36, 1), fill 0.3s, stroke-opacity 0.3s',
+                    transition: `d ${transitionMs}ms cubic-bezier(0.22, 1, 0.36, 1), fill 0.3s, stroke-opacity 0.3s`,
                     filter: isEnabled ? `drop-shadow(0 0 6px ${color.stroke}66)` : 'none',
                   }}
                 />
@@ -471,7 +574,7 @@ function PerformanceRadarChart({
                       fill={color.stroke}
                       opacity={isEnabled ? 1 : 0.3}
                       className={m.id === 'slayql' && isEnabled ? 'radar-dot-anim live' : 'radar-dot-anim'}
-                      style={{ transition: 'r 0.3s, opacity 0.3s' }}
+                      style={{ transition: `cx ${transitionMs}ms cubic-bezier(0.22, 1, 0.36, 1), cy ${transitionMs}ms cubic-bezier(0.22, 1, 0.36, 1), r 0.3s, opacity 0.3s` }}
                     />
                   );
                 })}
@@ -515,11 +618,11 @@ function PerformanceRadarChart({
                     </span>
                   )}
                 </div>
-                <div className="grid grid-cols-4 gap-1 mt-1.5 text-[9px] font-mono text-white/50">
+                <div className="grid grid-cols-4 gap-1 mt-1.5 text-[9px] font-mono text-white/50 tabular-nums">
                   <span title="Execution Accuracy">EX <span className="text-white/80">{m.metrics.executionAccuracy.toFixed(1)}</span></span>
-                  <span title="Schema Recall">S-R <span className="text-white/80">{m.metrics.schemaRecall}</span></span>
-                  <span title="Token Efficiency">Tok <span className="text-white/80">{m.metrics.tokenEfficiency}</span></span>
-                  <span title="Speed">Spd <span className="text-white/80">{m.metrics.speed}</span></span>
+                  <span title="Schema Recall">S-R <span className="text-white/80">{Math.round(m.metrics.schemaRecall)}</span></span>
+                  <span title="Token Efficiency">Tok <span className="text-white/80">{Math.round(m.metrics.tokenEfficiency)}</span></span>
+                  <span title="Speed">Spd <span className="text-white/80">{Math.round(m.metrics.speed)}</span></span>
                 </div>
               </div>
             </button>
@@ -669,7 +772,7 @@ const PREFIX_LABEL: Record<LogLine['prefix'], string> = {
   METRICS: '[METRICS]',
 };
 
-function LiveEvaluationLog() {
+function LiveEvaluationLog({ frozen = false }: { frozen?: boolean }) {
   const [lines, setLines] = useState<LogLine[]>(() => {
     return Array.from({ length: 14 }, (_, i) => generateLog(i));
   });
@@ -678,7 +781,8 @@ function LiveEvaluationLog() {
   const counterRef = useRef(14);
 
   useEffect(() => {
-    if (paused) return;
+    // Stop appending lines when the radar run is complete or user paused.
+    if (paused || frozen) return;
     const interval = setInterval(() => {
       const next = generateLog(counterRef.current++);
       setLines((prev) => {
@@ -687,7 +791,20 @@ function LiveEvaluationLog() {
       });
     }, 380);
     return () => clearInterval(interval);
-  }, [paused]);
+  }, [paused, frozen]);
+
+  // Append a final "run complete" banner line exactly once when the run finishes.
+  const finalLineAddedRef = useRef(false);
+  useEffect(() => {
+    if (!frozen || finalLineAddedRef.current) return;
+    finalLineAddedRef.current = true;
+    setLines((prev) => [
+      ...prev,
+      { id: counterRef.current++, prefix: 'SYS', text: '──────────────────────────────────────────' },
+      { id: counterRef.current++, prefix: 'OK',  text: 'Evaluation run complete · 547/547 queries validated' },
+      { id: counterRef.current++, prefix: 'SYS', text: 'Snapshot frozen for inspection · refresh page to re-run' },
+    ]);
+  }, [frozen]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -745,17 +862,24 @@ function LiveEvaluationLog() {
           success&nbsp;
           <span className="text-white">{stats.successRate.toFixed(1)}%</span>
         </span>
-        <button
-          type="button"
-          onClick={() => setPaused((p) => !p)}
-          className={`ml-auto px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider border transition-colors ${
-            paused
-              ? 'border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20'
-              : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
-          }`}
-        >
-          {paused ? '▶ resume' : '⏸ pause'}
-        </button>
+        {frozen ? (
+          <span className="ml-auto inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider border border-cyan-400/40 bg-cyan-500/10 text-cyan-200">
+            <CheckCircle2 className="w-2.5 h-2.5" />
+            complete
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setPaused((p) => !p)}
+            className={`ml-auto px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider border transition-colors ${
+              paused
+                ? 'border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20'
+                : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
+            }`}
+          >
+            {paused ? '▶ resume' : '⏸ pause'}
+          </button>
+        )}
       </div>
 
       {/* Log body */}
@@ -771,8 +895,12 @@ function LiveEvaluationLog() {
           </div>
         ))}
         <div className="flex gap-2 pt-1">
-          <span className="text-emerald-400">$</span>
-          <span className="log-cursor text-emerald-400">▎</span>
+          <span className={frozen ? 'text-cyan-400' : 'text-emerald-400'}>$</span>
+          {frozen ? (
+            <span className="text-cyan-400/60 text-[10px] uppercase tracking-widest">[ session ended ]</span>
+          ) : (
+            <span className="log-cursor text-emerald-400">▎</span>
+          )}
         </div>
       </div>
     </div>
