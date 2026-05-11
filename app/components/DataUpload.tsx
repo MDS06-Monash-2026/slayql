@@ -24,7 +24,9 @@ import {
   HardDrive,
   ExternalLink,
   ShieldCheck,
+  GitBranch,
 } from 'lucide-react';
+import { SchemaGraphModal, type GraphRelationship, type GraphTable } from './SchemaGraph';
 
 // -----------------------------------------------------------------------------
 // Types & constants
@@ -38,12 +40,20 @@ interface DetectedColumn {
   name: string;
   type: string;
   isPk?: boolean;
+  isFk?: boolean;
 }
 
 interface DetectedTable {
   name: string;
   columns: DetectedColumn[];
   rowCount?: number;
+}
+
+interface DetectedRelationship {
+  from: string;
+  to: string;
+  fromColumn: string;
+  toColumn: string;
 }
 
 interface UserDataset {
@@ -60,6 +70,7 @@ interface UserDataset {
   createdAt: number;
   updatedAt: number;
   tables?: DetectedTable[];
+  relationships?: DetectedRelationship[];
   /** Built-in datasets: locked from delete + carry a navigation route. */
   readOnly?: boolean;
   route?: string;
@@ -153,28 +164,78 @@ function isAccepted(ext: string): boolean {
 
 const MOCK_TYPES = ['INT', 'VARCHAR', 'DECIMAL', 'TIMESTAMP', 'BOOLEAN', 'TEXT', 'DATE'];
 
-function generateMockTables(seed: string): DetectedTable[] {
-  const tableCount = 2 + (seed.length % 5);
-  const tables: DetectedTable[] = [];
-  const possibleTables = ['users', 'orders', 'products', 'sessions', 'events', 'inventory', 'invoices'];
-  for (let i = 0; i < tableCount; i++) {
-    const name = possibleTables[(seed.charCodeAt(0) + i) % possibleTables.length];
-    const colCount = 4 + ((seed.length + i) % 6);
+const TABLE_POOL = [
+  'users',
+  'orders',
+  'products',
+  'sessions',
+  'events',
+  'inventory',
+  'invoices',
+  'shipments',
+  'reviews',
+  'addresses',
+];
+
+function singularize(name: string): string {
+  if (name.endsWith('ies')) return `${name.slice(0, -3)}y`;
+  if (name.endsWith('s')) return name.slice(0, -1);
+  return name;
+}
+
+function generateMockSchema(seed: string): { tables: DetectedTable[]; relationships: DetectedRelationship[] } {
+  const tableCount = 4 + (seed.length % 4); // 4..7 tables for stronger graphs
+  // Deterministic shuffle of TABLE_POOL by seed.
+  const shuffled = [...TABLE_POOL].sort((a, b) => {
+    const sa = (seed.charCodeAt(a.length % seed.length) + a.length) % 97;
+    const sb = (seed.charCodeAt(b.length % seed.length) + b.length) % 97;
+    return sa - sb;
+  });
+  const tableNames = shuffled.slice(0, Math.min(tableCount, TABLE_POOL.length));
+
+  const relationships: DetectedRelationship[] = [];
+
+  const tables: DetectedTable[] = tableNames.map((name, i) => {
+    const colCount = 4 + ((seed.length + i) % 4);
     const columns: DetectedColumn[] = [];
-    for (let c = 0; c < colCount; c++) {
+    columns.push({
+      name: `${singularize(name)}_id`,
+      type: 'INT',
+      isPk: true,
+    });
+    for (let c = 1; c < colCount; c++) {
       columns.push({
-        name: c === 0 ? `${name.slice(0, -1)}_id` : `column_${c}`,
+        name: `column_${c}`,
         type: MOCK_TYPES[(seed.charCodeAt(c % seed.length) + c) % MOCK_TYPES.length],
-        isPk: c === 0,
       });
     }
-    tables.push({
+    return {
       name,
       columns,
-      rowCount: 100 + ((seed.length + i) * 137) % 9000,
+      rowCount: 120 + ((seed.length + i) * 137) % 9000,
+    };
+  });
+
+  // Each non-hub table points back to an earlier table → produces hub-and-spoke topology.
+  for (let i = 1; i < tables.length; i++) {
+    const targetIdx = (seed.charCodeAt(i % seed.length) + i) % i;
+    const source = tables[i];
+    const target = tables[targetIdx];
+    const fkColName = `${singularize(target.name)}_id`;
+    if (!source.columns.some((c) => c.name === fkColName)) {
+      source.columns.push({ name: fkColName, type: 'INT', isFk: true });
+    } else {
+      source.columns = source.columns.map((c) => (c.name === fkColName ? { ...c, isFk: true } : c));
+    }
+    relationships.push({
+      from: source.name,
+      to: target.name,
+      fromColumn: fkColName,
+      toColumn: target.columns[0].name,
     });
   }
-  return tables;
+
+  return { tables, relationships };
 }
 
 // -----------------------------------------------------------------------------
@@ -189,10 +250,16 @@ export default function DataUpload() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Schema graph modal
+  const [graphModalId, setGraphModalId] = useState<string | null>(null);
+  const [autoOpenId, setAutoOpenId] = useState<string | null>(null);
+  const [freshGraph, setFreshGraph] = useState(false);
+
   // Upload state
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
+  const [dropFlashKey, setDropFlashKey] = useState(0);
 
   // Connection form state
   const [connEngine, setConnEngine] = useState<(typeof ENGINE_OPTIONS)[number]>('PostgreSQL');
@@ -235,6 +302,17 @@ export default function DataUpload() {
       // ignore quota errors
     }
   }, [datasets]);
+
+  // Auto-open the schema graph modal once a tracked dataset finishes parsing.
+  useEffect(() => {
+    if (!autoOpenId || graphModalId) return;
+    const target = datasets.find((d) => d.id === autoOpenId);
+    if (target?.status === 'ready' && target.tables?.length) {
+      setGraphModalId(autoOpenId);
+      setFreshGraph(true);
+      setAutoOpenId(null);
+    }
+  }, [datasets, autoOpenId, graphModalId]);
 
   const allDatasets = useMemo(() => [...BUILT_IN_DATASETS, ...datasets], [datasets]);
 
@@ -279,6 +357,12 @@ export default function DataUpload() {
 
     setUploadErrors(errors);
 
+    if (accepted.length > 0) {
+      // Trigger drop-zone flash animation for visual feedback.
+      setDropFlashKey((k) => k + 1);
+    }
+
+    let isFirstInBatch = true;
     for (const file of accepted) {
       const ext = getExtension(file.name);
       const id = genId();
@@ -296,13 +380,18 @@ export default function DataUpload() {
       };
       setDatasets((prev) => [newDs, ...prev]);
 
+      if (isFirstInBatch) {
+        setAutoOpenId((prev) => prev ?? id);
+        isFirstInBatch = false;
+      }
+
       // Simulate async parsing
       const delay = 1200 + Math.random() * 1200;
       setTimeout(() => {
         setDatasets((prev) =>
           prev.map((d) => {
             if (d.id !== id) return d;
-            const tables = generateMockTables(d.name + d.id);
+            const { tables, relationships } = generateMockSchema(d.name + d.id);
             const rowCount = tables.reduce((sum, t) => sum + (t.rowCount ?? 0), 0);
             return {
               ...d,
@@ -310,6 +399,7 @@ export default function DataUpload() {
               tableCount: tables.length,
               rowCount,
               tables,
+              relationships,
               updatedAt: Date.now(),
             };
           }),
@@ -376,6 +466,7 @@ export default function DataUpload() {
       updatedAt: Date.now(),
     };
     setDatasets((prev) => [newDs, ...prev]);
+    setAutoOpenId((prev) => prev ?? id);
     setConnName('');
     setConnString('');
     setConnTestResult(null);
@@ -385,7 +476,7 @@ export default function DataUpload() {
       setDatasets((prev) =>
         prev.map((d) => {
           if (d.id !== id) return d;
-          const tables = generateMockTables(d.name + d.id);
+          const { tables, relationships } = generateMockSchema(d.name + d.id);
           const rowCount = tables.reduce((sum, t) => sum + (t.rowCount ?? 0), 0);
           return {
             ...d,
@@ -393,6 +484,7 @@ export default function DataUpload() {
             tableCount: tables.length,
             rowCount,
             tables,
+            relationships,
             updatedAt: Date.now(),
           };
         }),
@@ -418,12 +510,18 @@ export default function DataUpload() {
       setDatasets((prev) =>
         prev.map((d) => {
           if (d.id !== id) return d;
-          const tables = d.tables ?? generateMockTables(d.name + d.id);
+          let { tables, relationships } = { tables: d.tables, relationships: d.relationships };
+          if (!tables || !relationships) {
+            const generated = generateMockSchema(d.name + d.id);
+            tables = generated.tables;
+            relationships = generated.relationships;
+          }
           return {
             ...d,
             status: 'ready',
             tableCount: tables.length,
             tables,
+            relationships,
             updatedAt: Date.now(),
           };
         }),
@@ -434,8 +532,8 @@ export default function DataUpload() {
   const datasetPendingDelete = datasets.find((d) => d.id === deletingId);
 
   return (
-    <div className="h-full overflow-y-auto custom-scrollbar p-4 md:p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="h-full overflow-y-auto custom-scrollbar p-3 sm:p-4 md:p-8">
+      <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
         {/* ----------------- Header ----------------- */}
         <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
@@ -484,12 +582,48 @@ export default function DataUpload() {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`relative rounded-3xl border-2 border-dashed transition-all p-8 md:p-12 ${
+            className={`relative rounded-2xl sm:rounded-3xl border-2 border-dashed transition-all p-6 sm:p-8 md:p-12 overflow-hidden ${
               isDragging
-                ? 'border-cyan-400 bg-cyan-500/10 shadow-[0_0_40px_rgba(34,211,238,0.2)]'
+                ? 'border-cyan-400 bg-cyan-500/10 shadow-[0_0_60px_rgba(34,211,238,0.3)]'
                 : 'border-white/10 bg-[#0a101d]/60 hover:border-cyan-500/40 hover:bg-[#0a101d]/80'
             }`}
           >
+            <style>{`
+              @keyframes du-drop-flash {
+                0% { opacity: 0; transform: scale(0.3); }
+                15% { opacity: 0.9; transform: scale(1); }
+                100% { opacity: 0; transform: scale(2.2); }
+              }
+              @keyframes du-drop-flash-ring {
+                0% { opacity: 0; transform: scale(0.5); }
+                30% { opacity: 0.8; }
+                100% { opacity: 0; transform: scale(1.8); }
+              }
+              .du-drop-flash {
+                animation: du-drop-flash 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+              }
+              .du-drop-flash-ring {
+                animation: du-drop-flash-ring 1.4s ease-out forwards;
+              }
+            `}</style>
+
+            {/* Drop flash overlay (re-mounts on each successful drop via key) */}
+            {dropFlashKey > 0 && (
+              <div
+                key={dropFlashKey}
+                className="absolute inset-0 pointer-events-none flex items-center justify-center"
+              >
+                <div
+                  className="du-drop-flash w-64 h-64 rounded-full"
+                  style={{
+                    background:
+                      'radial-gradient(circle, rgba(34,211,238,0.55), rgba(168,85,247,0.25) 45%, transparent 70%)',
+                  }}
+                />
+                <div className="du-drop-flash-ring absolute w-72 h-72 rounded-full border-2 border-cyan-400/60" />
+              </div>
+            )}
+
             <input
               ref={fileInputRef}
               type="file"
@@ -499,7 +633,7 @@ export default function DataUpload() {
               className="hidden"
             />
 
-            <div className="flex flex-col items-center text-center gap-4">
+            <div className="relative flex flex-col items-center text-center gap-4">
               <div className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all ${
                 isDragging ? 'bg-cyan-500/20 scale-110' : 'bg-cyan-500/10'
               }`}>
@@ -508,17 +642,19 @@ export default function DataUpload() {
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-white">
-                  {isDragging ? 'Drop your files here' : 'Drag & drop files to upload'}
+                <h3 className="text-base sm:text-lg font-semibold text-white">
+                  {isDragging ? 'Release to parse your database' : 'Drag & drop your database file'}
                 </h3>
-                <p className="text-white/40 text-sm mt-1">
-                  or{' '}
+                <p className="text-white/40 text-xs sm:text-sm mt-1 max-w-md mx-auto">
+                  We&rsquo;ll instantly generate a visual{' '}
+                  <span className="text-cyan-300 font-medium">Schema Graph</span> mapping every table and foreign-key
+                  relationship &mdash; or{' '}
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors"
                   >
-                    browse from your computer
+                    browse files
                   </button>
                 </p>
               </div>
@@ -527,14 +663,18 @@ export default function DataUpload() {
                 {ACCEPTED_EXTENSIONS.map((ext) => (
                   <span
                     key={ext}
-                    className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border border-white/10 bg-white/[0.03] text-white/50"
+                    className={`text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                      ext === 'sqlite' || ext === 'db'
+                        ? 'border-cyan-400/40 bg-cyan-500/10 text-cyan-300'
+                        : 'border-white/10 bg-white/[0.03] text-white/50'
+                    }`}
                   >
                     .{ext}
                   </span>
                 ))}
               </div>
 
-              {/* <p className="text-[11px] text-white/30">Max {formatBytes(MAX_FILE_SIZE_BYTES)} per file</p> */}
+              <p className="text-[11px] text-white/30">Max {formatBytes(MAX_FILE_SIZE_BYTES)} per file</p>
             </div>
 
             {uploadErrors.length > 0 && (
@@ -563,14 +703,14 @@ export default function DataUpload() {
         )}
 
         {method === 'connect' && (
-          <section className="rounded-3xl border border-white/10 bg-[#0a101d]/70 backdrop-blur-xl p-6 md:p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/30 flex items-center justify-center">
-                <Plug className="w-5 h-5 text-violet-400" />
+          <section className="rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0a101d]/70 backdrop-blur-xl p-4 sm:p-6 md:p-8">
+            <div className="flex items-center gap-3 mb-5 sm:mb-6">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-violet-500/10 border border-violet-500/30 flex items-center justify-center shrink-0">
+                <Plug className="w-4 h-4 sm:w-5 sm:h-5 text-violet-400" />
               </div>
-              <div>
-                <h3 className="text-base font-semibold text-white">New Database Connection</h3>
-                <p className="text-xs text-white/40 mt-0.5">Credentials are stored locally and never sent to our servers.</p>
+              <div className="min-w-0">
+                <h3 className="text-sm sm:text-base font-semibold text-white">New Database Connection</h3>
+                <p className="text-[11px] sm:text-xs text-white/40 mt-0.5">Credentials are stored locally and never sent to our servers.</p>
               </div>
             </div>
 
@@ -658,12 +798,12 @@ export default function DataUpload() {
         )}
 
         {method === 'cloud' && (
-          <section className="rounded-3xl border border-dashed border-white/10 bg-[#0a101d]/40 p-12 text-center">
-            <div className="inline-flex w-14 h-14 rounded-2xl bg-fuchsia-500/10 border border-fuchsia-500/20 items-center justify-center mb-4">
-              <Cloud className="w-7 h-7 text-fuchsia-300" />
+          <section className="rounded-2xl sm:rounded-3xl border border-dashed border-white/10 bg-[#0a101d]/40 p-8 sm:p-12 text-center">
+            <div className="inline-flex w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-fuchsia-500/10 border border-fuchsia-500/20 items-center justify-center mb-4">
+              <Cloud className="w-6 h-6 sm:w-7 sm:h-7 text-fuchsia-300" />
             </div>
-            <h3 className="text-base font-semibold text-white">Cloud storage import &mdash; coming soon</h3>
-            <p className="text-sm text-white/40 mt-2 max-w-md mx-auto">
+            <h3 className="text-sm sm:text-base font-semibold text-white">Cloud storage import &mdash; coming soon</h3>
+            <p className="text-xs sm:text-sm text-white/40 mt-2 max-w-md mx-auto">
               Sync directly from S3, GCS, Azure Blob, Google Drive and more. Join the waitlist to get notified.
             </p>
             <button
@@ -707,12 +847,40 @@ export default function DataUpload() {
                   onDelete={() => setDeletingId(d.id)}
                   onReprocess={() => handleReprocess(d.id)}
                   onOpenInExplore={d.route ? () => router.push(d.route!) : undefined}
+                  onViewGraph={
+                    d.source !== 'builtin' && d.status === 'ready' && (d.tables?.length ?? 0) > 0
+                      ? () => {
+                          setFreshGraph(false);
+                          setGraphModalId(d.id);
+                        }
+                      : undefined
+                  }
                 />
               ))}
             </div>
           )}
         </section>
       </div>
+
+      {/* ----------------- Schema Graph modal ----------------- */}
+      {graphModalId && (() => {
+        const target = allDatasets.find((d) => d.id === graphModalId);
+        if (!target || !target.tables) return null;
+        const subtitle = `${target.engine ?? target.format?.toUpperCase() ?? 'Custom'} · ${target.tables.length} tables · ${target.relationships?.length ?? 0} relationships`;
+        return (
+          <SchemaGraphModal
+            datasetName={target.name}
+            datasetSubtitle={subtitle}
+            tables={target.tables as GraphTable[]}
+            relationships={(target.relationships ?? []) as GraphRelationship[]}
+            freshlyGenerated={freshGraph}
+            onClose={() => {
+              setGraphModalId(null);
+              setFreshGraph(false);
+            }}
+          />
+        );
+      })()}
 
       {/* ----------------- Delete confirm modal ----------------- */}
       {deletingId && datasetPendingDelete && (
@@ -803,13 +971,13 @@ function MethodTab({
     <button
       type="button"
       onClick={onClick}
-      className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap -mb-px ${
+      className={`relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-all whitespace-nowrap -mb-px ${
         active
           ? `${activeAccent[accent]} bg-white/[0.02]`
           : 'text-white/50 hover:text-white/80 border-transparent hover:bg-white/[0.02]'
       }`}
     >
-      <Icon className="w-4 h-4" />
+      <Icon className="w-4 h-4 shrink-0" />
       <span>{label}</span>
       {soon && (
         <span className="text-[8px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-300">
@@ -893,6 +1061,7 @@ function DatasetCard({
   onDelete,
   onReprocess,
   onOpenInExplore,
+  onViewGraph,
 }: {
   dataset: UserDataset;
   expanded: boolean;
@@ -900,6 +1069,7 @@ function DatasetCard({
   onDelete: () => void;
   onReprocess: () => void;
   onOpenInExplore?: () => void;
+  onViewGraph?: () => void;
 }) {
   const isBuiltIn = dataset.source === 'builtin';
   const canExpand = !isBuiltIn && dataset.status === 'ready' && (dataset.tables?.length ?? 0) > 0;
@@ -913,79 +1083,95 @@ function DatasetCard({
             : 'bg-[#0a101d]/70 border-white/10 hover:border-white/20'
       }`}
     >
-      <div className="p-4 md:p-5 flex items-center gap-4">
-        <button
-          type="button"
-          onClick={onToggle}
-          disabled={!canExpand}
-          className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 transition-all ${
-            isBuiltIn
-              ? 'border-amber-500/20 bg-amber-500/5 cursor-default'
-              : canExpand
-                ? 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06] cursor-pointer'
-                : 'border-white/5 bg-white/[0.02] cursor-default'
-          }`}
-          title={canExpand ? (expanded ? 'Collapse' : 'View schema') : undefined}
-        >
-          <SourceIcon source={dataset.source} />
-        </button>
+      <div className="p-3 sm:p-4 md:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
+          <button
+            type="button"
+            onClick={onToggle}
+            disabled={!canExpand}
+            className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 transition-all ${
+              isBuiltIn
+                ? 'border-amber-500/20 bg-amber-500/5 cursor-default'
+                : canExpand
+                  ? 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06] cursor-pointer'
+                  : 'border-white/5 bg-white/[0.02] cursor-default'
+            }`}
+            title={canExpand ? (expanded ? 'Collapse' : 'View schema') : undefined}
+          >
+            <SourceIcon source={dataset.source} />
+          </button>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-sm font-semibold text-white truncate">{dataset.name}</h3>
-            {isBuiltIn ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider border border-amber-500/30 bg-amber-500/10 text-amber-300">
-                <ShieldCheck className="w-3 h-3" /> Built-in
-              </span>
-            ) : (
-              <StatusPill status={dataset.status} />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-sm font-semibold text-white truncate">{dataset.name}</h3>
+              {isBuiltIn ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider border border-amber-500/30 bg-amber-500/10 text-amber-300">
+                  <ShieldCheck className="w-3 h-3" /> Built-in
+                </span>
+              ) : (
+                <StatusPill status={dataset.status} />
+              )}
+            </div>
+
+            {isBuiltIn && dataset.description ? (
+              <p className="mt-1 text-xs text-white/55 line-clamp-2 leading-relaxed">{dataset.description}</p>
+            ) : null}
+
+            <div className="mt-1.5 flex items-center gap-x-3 gap-y-0.5 text-[11px] text-white/40 font-mono flex-wrap">
+              {dataset.source === 'file' && dataset.format && (
+                <span className="uppercase tracking-wider">.{dataset.format}</span>
+              )}
+              {(dataset.source === 'connection' || dataset.source === 'builtin') && dataset.engine && (
+                <span className="inline-flex items-center gap-1 truncate max-w-[200px]">
+                  <HardDrive className="w-3 h-3 shrink-0" />
+                  <span className="truncate">{dataset.engine}</span>
+                </span>
+              )}
+              {!isBuiltIn && dataset.status === 'ready' && (
+                <>
+                  <span>{dataset.tableCount} table{dataset.tableCount === 1 ? '' : 's'}</span>
+                  {dataset.rowCount !== undefined && (
+                    <span className="hidden xs:inline">~{dataset.rowCount.toLocaleString()} rows</span>
+                  )}
+                </>
+              )}
+              {dataset.sizeBytes !== undefined && <span>{formatBytes(dataset.sizeBytes)}</span>}
+              {!isBuiltIn && (
+                <>
+                  <span className="text-white/30 hidden sm:inline">&middot;</span>
+                  <span>{formatRelativeTime(dataset.updatedAt)}</span>
+                </>
+              )}
+            </div>
+            {dataset.status === 'error' && dataset.errorMessage && (
+              <p className="mt-1 text-[11px] text-red-300/80">{dataset.errorMessage}</p>
             )}
           </div>
-
-          {isBuiltIn && dataset.description ? (
-            <p className="mt-1 text-xs text-white/55 line-clamp-2 leading-relaxed">{dataset.description}</p>
-          ) : null}
-
-          <div className="mt-1.5 flex items-center gap-3 text-[11px] text-white/40 font-mono flex-wrap">
-            {dataset.source === 'file' && dataset.format && (
-              <span className="uppercase tracking-wider">.{dataset.format}</span>
-            )}
-            {(dataset.source === 'connection' || dataset.source === 'builtin') && dataset.engine && (
-              <span className="inline-flex items-center gap-1">
-                <HardDrive className="w-3 h-3" />
-                {dataset.engine}
-              </span>
-            )}
-            {!isBuiltIn && dataset.status === 'ready' && (
-              <>
-                <span>{dataset.tableCount} table{dataset.tableCount === 1 ? '' : 's'}</span>
-                {dataset.rowCount !== undefined && <span>~{dataset.rowCount.toLocaleString()} rows</span>}
-              </>
-            )}
-            {dataset.sizeBytes !== undefined && <span>{formatBytes(dataset.sizeBytes)}</span>}
-            {!isBuiltIn && (
-              <>
-                <span className="text-white/30">&middot;</span>
-                <span>{formatRelativeTime(dataset.updatedAt)}</span>
-              </>
-            )}
-          </div>
-          {dataset.status === 'error' && dataset.errorMessage && (
-            <p className="mt-1 text-[11px] text-red-300/80">{dataset.errorMessage}</p>
-          )}
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1 shrink-0 self-stretch sm:self-auto justify-end flex-wrap">
           {isBuiltIn && onOpenInExplore && (
             <button
               type="button"
               onClick={onOpenInExplore}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono border border-amber-500/30 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20 hover:border-amber-400/50 transition-all"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-mono border border-amber-500/30 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20 hover:border-amber-400/50 transition-all"
               title="Open in Explore tab"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Open in Explore</span>
               <span className="sm:hidden">Explore</span>
+            </button>
+          )}
+          {!isBuiltIn && onViewGraph && (
+            <button
+              type="button"
+              onClick={onViewGraph}
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-mono border border-cyan-500/30 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20 hover:border-cyan-400/50 transition-all"
+              title="View schema graph"
+            >
+              <GitBranch className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">View Graph</span>
+              <span className="sm:hidden">Graph</span>
             </button>
           )}
           {!isBuiltIn && dataset.status === 'error' && (

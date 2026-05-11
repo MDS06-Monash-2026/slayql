@@ -79,7 +79,10 @@ export default function MainApp() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#060b14] relative">
+    <div
+      className="flex h-screen overflow-hidden bg-[#060b14] relative"
+      style={{ ['--sidebar-w' as string]: sidebarCollapsed ? '72px' : '240px' } as React.CSSProperties}
+    >
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/10 via-violet-900/10 to-fuchsia-900/10 animate-gradient-shift pointer-events-none" />
 
