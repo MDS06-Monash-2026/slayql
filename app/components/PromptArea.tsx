@@ -641,7 +641,15 @@ ORDER BY total_revenue DESC;`;
                         ) : (
                           <LLMResponseCard
                             data={{
-                              reasoning: `1. Parse request\n2. Generate SQL using ${selectedFramework} with model ${selectedModel}\n3. Optimize query`,
+                              reasoning: [
+                                'Analyzed the natural-language request and parsed the user intent.',
+                                'Identified the relevant tables from the schema: products and order_items.',
+                                'Checked relationships and resolved the join on product_id (foreign key).',
+                                'Determined the required aggregation: SUM(quantity × price) as total_revenue.',
+                                'Applied grouping on the category column to roll up sales per category.',
+                                `Optimized the query plan using ${selectedFramework} with model ${selectedModel}.`,
+                                'Generated and validated the final SQL statement.',
+                              ].map((s, i) => `${i + 1}. ${s}`).join('\n'),
                               summary:
                                 "The query joins the 'products' table with 'order_items' using the product ID to associate each sale with its category. It then calculates the total sales for each category by summing the product of quantity and price for each line item and grouping the results by the 'category' column.",
                               sql: msg.sql,
