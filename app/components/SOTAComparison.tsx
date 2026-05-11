@@ -778,13 +778,12 @@ function LiveEvaluationLog({ frozen = false }: { frozen?: boolean }) {
   const [lines, setLines] = useState<LogLine[]>(() => {
     return Array.from({ length: 14 }, (_, i) => generateLog(i));
   });
-  const [paused, setPaused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const counterRef = useRef(14);
 
   useEffect(() => {
-    // Stop appending lines when the radar run is complete or user paused.
-    if (paused || frozen) return;
+    // Stop appending lines when the radar run is complete.
+    if (frozen) return;
     const interval = setInterval(() => {
       const next = generateLog(counterRef.current++);
       setLines((prev) => {
@@ -793,7 +792,7 @@ function LiveEvaluationLog({ frozen = false }: { frozen?: boolean }) {
       });
     }, 380);
     return () => clearInterval(interval);
-  }, [paused, frozen]);
+  }, [frozen]);
 
   // Append a final "run complete" banner line exactly once when the run finishes.
   const finalLineAddedRef = useRef(false);
@@ -864,23 +863,11 @@ function LiveEvaluationLog({ frozen = false }: { frozen?: boolean }) {
           success&nbsp;
           <span className="text-white">{stats.successRate.toFixed(1)}%</span>
         </span>
-        {frozen ? (
+        {frozen && (
           <span className="ml-auto inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider border border-cyan-400/40 bg-cyan-500/10 text-cyan-200">
             <CheckCircle2 className="w-2.5 h-2.5" />
             complete
           </span>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setPaused((p) => !p)}
-            className={`ml-auto px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider border transition-colors ${
-              paused
-                ? 'border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20'
-                : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
-            }`}
-          >
-            {paused ? '▶ resume' : '⏸ pause'}
-          </button>
         )}
       </div>
 
