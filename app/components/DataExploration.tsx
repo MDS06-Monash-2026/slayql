@@ -78,10 +78,10 @@ export default function BenchmarkExploration() {
                 key={env.id}
                 onClick={() => {
                   if (env.isAvailable && env.id === 'spider2-lite') {
-                    router.push('/spider2lite');
+                    router.push('/?tab=data&explore=spider2-lite');
                   }
                   if (env.isAvailable && env.id === 'bird') {
-                    router.push('/bird');
+                    router.push('/?tab=data&explore=bird');
                   }
                 }}
                 className={`relative group rounded-3xl p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between transition-all duration-500 overflow-hidden ${

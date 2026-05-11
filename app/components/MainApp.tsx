@@ -6,8 +6,11 @@ import Sidebar from './Sidebar';
 import PromptArea from './PromptArea';
 import DataExploration from './DataExploration';
 import SOTAComparison from './SOTAComparison';
+import DataUpload from './DataUpload';
+import BirdPage from '../bird/page';
+import Spider2LitePage from '../spider2lite/page';
 
-type Tab = 'prompt' | 'data' | 'sota';
+type Tab = 'prompt' | 'data' | 'sota' | 'upload';
 
 const datasets = [
   { id: 'Spider2.0-Lite', name: 'Spider2.0-Lite' },
@@ -36,6 +39,7 @@ export default function MainApp() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const exploreParam = searchParams.get('explore');
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
@@ -43,6 +47,8 @@ export default function MainApp() {
       setActiveTab('data');
     } else if (tabParam === 'sota') {
       setActiveTab('sota');
+    } else if (tabParam === 'upload') {
+      setActiveTab('upload');
     } else {
       setActiveTab('prompt');
     }
@@ -55,16 +61,28 @@ export default function MainApp() {
     const params = new URLSearchParams(searchParams.toString());
     if (tab === 'prompt') {
       params.delete('tab');
+      params.delete('explore');
     } else {
       params.set('tab', tab);
+      if (tab !== 'data') params.delete('explore');
     }
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
     // close mobile sidebar after selection
     setSidebarMobileOpen(false);
   };
 
+  const handleBackToEnvironments = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', 'data');
+    params.delete('explore');
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
   return (
-    <div className="flex h-screen overflow-hidden bg-[#060b14] relative">
+    <div
+      className="flex h-screen overflow-hidden bg-[#060b14] relative"
+      style={{ ['--sidebar-w' as string]: sidebarCollapsed ? '72px' : '240px' } as React.CSSProperties}
+    >
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/10 via-violet-900/10 to-fuchsia-900/10 animate-gradient-shift pointer-events-none" />
 
@@ -178,6 +196,20 @@ export default function MainApp() {
 
         {/* CONTENT AREA */}
         <div className="flex-1 overflow-auto relative">
+          {activeTab === 'data' && exploreParam && (
+            <div className="px-4 sm:px-6 py-2 border-b border-white/5 bg-[#060b14]/55 backdrop-blur-md">
+              <button
+                onClick={handleBackToEnvironments}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-300 text-xs font-mono hover:bg-cyan-500/20 transition-all"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to environments
+              </button>
+            </div>
+          )}
+
           {activeTab === 'prompt' && (
             <PromptArea
               selectedFramework={selectedFramework}
@@ -193,8 +225,17 @@ export default function MainApp() {
               useMockup={true}
             />
           )}
-          {activeTab === 'data' && <DataExploration />}
+          {activeTab === 'data' && (
+            exploreParam === 'bird' ? (
+              <BirdPage embedded />
+            ) : exploreParam === 'spider2-lite' ? (
+              <Spider2LitePage embedded />
+            ) : (
+              <DataExploration />
+            )
+          )}
           {activeTab === 'sota' && <SOTAComparison />}
+          {activeTab === 'upload' && <DataUpload />}
         </div>
       </div>
     </div>

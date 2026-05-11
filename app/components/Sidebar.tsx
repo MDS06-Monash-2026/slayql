@@ -1,9 +1,9 @@
 'use client';
 
-import { Home, Database, Trophy, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
+import { Home, Database, Trophy, ChevronLeft, ChevronRight, LogOut, Upload } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-type Tab = 'prompt' | 'data' | 'sota';
+type Tab = 'prompt' | 'data' | 'sota' | 'upload';
 
 interface SidebarProps {
   activeTab: Tab;
@@ -26,6 +26,7 @@ export default function Sidebar({ activeTab, setActiveTab, collapsed, onToggle }
   const menuItems = [
     { id: 'prompt', label: 'Text to SQL', icon: Home },
     { id: 'data', label: 'Explore', icon: Database },
+    { id: 'upload', label: 'My Data', icon: Upload },
     { id: 'sota', label: 'SOTA', icon: Trophy },
   ] as const;
 
@@ -136,13 +137,13 @@ export default function Sidebar({ activeTab, setActiveTab, collapsed, onToggle }
           })}
 
           {/* Mobile logout button (compact) */}
-          <button
+          {/* <button
             onClick={handleLogoutClick}
             className="relative flex flex-col items-center gap-0.5 px-3 py-2.5 rounded-2xl transition-all duration-300 text-red-500/60 hover:text-red-400"
           >
             <LogOut className="w-5 h-5" />
             <span className="text-[9px] font-semibold tracking-wider">Exit</span>
-          </button>
+          </button> */}
         </div>
       </>
     );
@@ -227,7 +228,7 @@ export default function Sidebar({ activeTab, setActiveTab, collapsed, onToggle }
         </div>
 
         {/* Logout */}
-        <div className="p-4 mt-auto">
+        {/* <div className="p-4 mt-auto">
           <button
             onClick={handleLogoutClick}
             className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 group ${
@@ -240,7 +241,7 @@ export default function Sidebar({ activeTab, setActiveTab, collapsed, onToggle }
               <span className="text-sm font-bold tracking-widest uppercase transition-colors">Logout</span>
             )}
           </button>
-        </div>
+        </div> */}
       </div>
     </>
   );

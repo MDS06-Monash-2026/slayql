@@ -55,7 +55,7 @@ function DataCell({ value }: { value: any }) {
   );
 }
 
-export default function BirdPage() {
+export default function BirdPage({ embedded = false }: { embedded?: boolean }) {
   const [databases, setDatabases] = useState<DatabaseFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -84,11 +84,11 @@ export default function BirdPage() {
   );
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[#060b14] relative font-sans text-slate-300">
+    <div className={`flex flex-col overflow-hidden bg-[#060b14] relative font-sans text-slate-300 ${embedded ? 'h-full' : 'h-screen'}`}>
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/10 via-violet-900/10 to-fuchsia-900/10 animate-gradient-shift pointer-events-none" />
 
       {/* Header */}
-      <div className="h-16 border-b border-white/5 bg-[#060b14]/70 backdrop-blur-2xl flex items-center px-6 justify-between z-50 shadow-lg relative">
+      <div className={`h-16 border-b border-white/5 bg-[#060b14]/70 backdrop-blur-2xl flex items-center px-6 justify-between z-50 shadow-lg relative ${embedded ? 'hidden' : ''}`}>
         <div className="flex items-center gap-4">
           <Link
             href="/?tab=data"
@@ -255,9 +255,9 @@ export default function BirdPage() {
                           <td className="px-4 py-2 text-[10px] font-mono text-slate-600 whitespace-nowrap">{rIdx + 1}</td>
                           {row.map((cell: any, cIdx: number) => (
                             <td key={cIdx} className="px-4 py-2 whitespace-nowrap"><DataCell value={cell} /></td>
-                          ))}
-                        </tr>
-                      ))
+                          ))} 
+                        </tr>  
+                      )) 
                     )}
                   </tbody>
                 </table>
