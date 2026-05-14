@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wireframe: Data Upload & Management (Clean)</title>
+    <style>
+        /* Base Wireframe Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            border-radius: 0; /* Strictly no rounded corners */
+        }
+
+        body, html {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden; /* Lock body */
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            line-height: 1.6; /* Increased line-height for breathability */
+        }
+
+        /* Core Wireframe Borders */
+        .wire-border { border: 1px solid #000000; }
+        .wire-border-b { border-bottom: 1px solid #000000; }
+        .wire-border-r { border-right: 1px solid #000000; }
+        .wire-border-t { border-top: 1px solid #000000; }
+        .wire-border-dashed { border: 2px dashed #000000; }
+
+        /* Grayscale Palette */
+        .bg-white { background-color: #ffffff; }
+        .bg-gray-50 { background-color: #f9f9f9; }
+        .bg-gray-100 { background-color: #f0f0f0; }
+        .bg-gray-200 { background-color: #e5e5e5; }
+        
+        .text-muted { color: #666666; }
+
+        /* Flexbox Utilities */
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .flex-row { flex-direction: row; }
+        .flex-1 { flex: 1; min-height: 0; min-width: 0; }
+        .items-center { align-items: center; }
+        .items-start { align-items: flex-start; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+
+        /* Generous Spacing */
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .p-8 { padding: 2rem; }
+        .p-10 { padding: 2.5rem; }
+        
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+        
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+        .gap-8 { gap: 2rem; }
+        
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mb-10 { margin-bottom: 2.5rem; }
+        .mb-12 { margin-bottom: 3rem; }
+
+        /* Typography */
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-base { font-size: 1rem; }
+        .text-xl { font-size: 1.5rem; }
+        .text-2xl { font-size: 2rem; }
+        .font-bold { font-weight: bold; }
+        .font-mono { font-family: monospace; }
+        .uppercase { text-transform: uppercase; letter-spacing: 0.05em; }
+        .text-center { text-align: center; }
+
+        /* Authentic Wireframe Image Placeholder */
+        .img-placeholder {
+            border: 1px solid #000000;
+            background: 
+                linear-gradient(to top right, transparent calc(50% - 0.5px), #000 50%, transparent calc(50% + 0.5px)),
+                linear-gradient(to bottom right, transparent calc(50% - 0.5px), #000 50%, transparent calc(50% + 0.5px));
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .img-placeholder-text {
+            background-color: #f0f0f0;
+            padding: 2px 6px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            border: 1px solid #000;
+        }
+
+        /* Buttons & Badges */
+        .wire-btn {
+            border: 1px solid #000;
+            padding: 8px 16px;
+            font-size: 0.875rem;
+            font-weight: bold;
+            background-color: #ffffff;
+            cursor: pointer;
+        }
+        .wire-badge {
+            border: 1px solid #000;
+            padding: 4px 10px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            background-color: #f5f5f5;
+            text-transform: uppercase;
+        }
+
+        /* Layout specific */
+        .scroll-container {
+            overflow-y: auto;
+            width: 100%;
+            height: 100%;
+            padding: 3rem; /* Increased outer padding */
+            display: flex;
+            justify-content: center;
+        }
+        .content-max {
+            width: 100%;
+            max-width: 1100px; /* Slightly wider to let the grid breathe */
+        }
+
+        /* Grid */
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem; } /* Dramatically increased gap */
+
+        /* Column Lines */
+        .col-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            border-bottom: 1px solid #eaeaea;
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="scroll-container bg-white">
+        <div class="content-max flex-col">
+
+            <!-- ================= PAGE HEADER ================= -->
+            <header class="flex flex-row justify-between items-start mb-10">
+                <div class="flex-col gap-2">
+                    <h1 class="text-2xl font-bold">My Data</h1>
+                    <p class="text-base text-muted">Bring your own datasets — upload files or connect a live database.</p>
+                </div>
+                <!-- Stat Badges -->
+                <div class="flex flex-row gap-4">
+                    <div class="wire-border px-4 py-3 font-mono">
+                        <span class="text-xs text-muted">DATASETS:</span> <b class="text-sm">4</b>
+                    </div>
+                    <div class="wire-border px-4 py-3 font-mono">
+                        <span class="text-xs text-muted">READY:</span> <b class="text-sm">3</b>
+                    </div>
+                    <div class="wire-border px-4 py-3 font-mono">
+                        <span class="text-xs text-muted">TABLES:</span> <b class="text-sm">12</b>
+                    </div>
+                    <div class="wire-border px-4 py-3 font-mono">
+                        <span class="text-xs text-muted">ROWS:</span> <b class="text-sm">~45,000</b>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ================= TABS ================= -->
+            <div class="flex flex-row wire-border-b mb-10">
+                <!-- Active Tab -->
+                <div class="px-8 py-4 wire-border-t wire-border-l wire-border-r bg-gray-100 font-bold text-base" style="margin-bottom: -1px;">
+                    [X] Upload Files
+                </div>
+                <!-- Inactive Tabs -->
+                <div class="px-8 py-4 text-base text-muted">
+                    [X] Connect Database
+                </div>
+                <div class="px-8 py-4 text-base text-muted">
+                    [X] Cloud Storage 
+                </div>
+            </div>
+
+            <!-- ================= TAB CONTENT: UPLOAD ================= -->
+            <section class="wire-border-dashed bg-gray-50 p-10 flex flex-col items-center justify-center mb-12 text-center" style="min-height: 280px;">
+                <div class="img-placeholder" style="width: 72px; height: 72px; margin-bottom: 1.5rem;">
+                    <span class="img-placeholder-text">ICON</span>
+                </div>
+                <h2 class="text-xl font-bold mb-4">Drag & drop your database file</h2>
+                <p class="text-base text-muted mb-6">Upload your SQLite database file to begin querying with natural language — or <u style="font-weight:bold; color:#000;">browse files</u>.</p>
+                
+                <div class="flex flex-row gap-3">
+                    <span class="wire-badge">.CSV</span>
+                    <span class="wire-badge">.JSON</span>
+                    <span class="wire-badge">.SQL</span>
+                    <span class="wire-badge">.SQLITE</span>
+                    <span class="wire-badge">.PARQUET</span>
+                </div>
+            </section>
+
+            <!-- ================= DATASETS LIST SECTION ================= -->
+            <section class="flex flex-col gap-6">
+                
+                <!-- List Header & Search -->
+                <div class="flex justify-between items-center mb-2">
+                    <div class="font-bold text-base uppercase text-muted">Your Datasets &middot; 4</div>
+                    <div class="wire-border px-4 py-3 text-sm text-muted" style="width: 300px;">
+                        [Icon] Search datasets...
+                    </div>
+                </div>
+
+                <!-- --- CARD 1: Built-in Dataset (Read Only) --- -->
+                <div class="wire-border bg-gray-50 flex flex-col">
+                    <div class="p-6 flex flex-row items-center justify-between">
+                        <div class="flex items-center gap-6">
+                            <!-- Icon -->
+                            <div class="img-placeholder" style="width: 48px; height: 48px;">
+                                <span class="img-placeholder-text">SYS</span>
+                            </div>
+                            <!-- Info -->
+                            <div class="flex-col">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <h3 class="text-lg font-bold">Spider 2.0 Lite</h3>
+                                    <span class="wire-badge">BUILT-IN</span>
+                                </div>
+                                <p class="text-sm text-muted mb-2">Hybrid multi-dialect benchmark spanning cloud warehouses and local databases.</p>
+                                <div class="text-xs font-mono text-muted">
+                                    [Icon] BigQuery &middot; Snowflake &middot; SQLite
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Actions -->
+                        <div class="flex gap-4">
+                            <button class="wire-btn">[X] Open in Explore</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- --- CARD 2: User Dataset (Ready, Expanded) --- -->
+                <div class="wire-border bg-white flex flex-col" style="border-width: 2px;">
+                    <!-- Card Header -->
+                    <div class="p-6 flex flex-row items-center justify-between">
+                        <div class="flex items-start gap-6">
+                            <!-- Expand/Collapse Button (Icon Placeholder) -->
+                            <div class="img-placeholder" style="width: 48px; height: 48px;">
+                                <span class="img-placeholder-text">[-]</span>
+                            </div>
+                            <!-- Info -->
+                            <div class="flex-col">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <h3 class="text-lg font-bold">prod_ecommerce_dump_2025</h3>
+                                    <span class="wire-badge" style="border: 1px solid #000; background-color:#fff;">READY</span>
+                                </div>
+                                <div class="text-sm font-mono text-muted">
+                                    .SQLITE &middot; [Icon] File Upload &middot; 4 tables &middot; ~12,400 rows &middot; 14.2 MB &middot; 2h ago
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Actions -->
+                        <div class="flex gap-4">
+                            <button class="wire-btn">[Graph] View Graph</button>
+                            <button class="wire-btn">[Trash]</button>
+                        </div>
+                    </div>
+
+                    <!-- Card Body: Expanded Schema View -->
+                    <div class="wire-border-t bg-gray-100 p-8 flex flex-col gap-6">
+                        
+                        <!-- Table 1 -->
+                        <div class="wire-border bg-white flex flex-col">
+                            <div class="wire-border-b px-6 py-4 flex justify-between items-center bg-gray-50">
+                                <div class="font-bold text-base">[Table Icon] users</div>
+                                <div class="text-sm font-mono text-muted">5 cols &middot; 2,400 rows</div>
+                            </div>
+                            <div class="p-6 grid-3">
+                                <!-- Columns -->
+                                <div class="col-line">
+                                    <span>[Key] user_id</span> <span class="wire-badge">INT</span>
+                                </div>
+                                <div class="col-line">
+                                    <span>[T] username</span> <span class="wire-badge">VARCHAR</span>
+                                </div>
+                                <div class="col-line">
+                                    <span>[T] email</span> <span class="wire-badge">VARCHAR</span>
+                                </div>
+                                <div class="col-line">
+                                    <span>[T] created_at</span> <span class="wire-badge">TIMESTAMP</span>
+                                </div>
+                                <div class="col-line">
+                                    <span>[T] is_active</span> <span class="wire-badge">BOOLEAN</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Table 2 -->
+                        <div class="wire-border bg-white flex flex-col">
+                            <div class="wire-border-b px-6 py-4 flex justify-between items-center bg-gray-50">
+                                <div class="font-bold text-base">[Table Icon] orders</div>
+                                <div class="text-sm font-mono text-muted">4 cols &middot; 10,000 rows</div>
+                            </div>
+                            <div class="p-6 grid-3">
+                                <!-- Columns -->
+                                <div class="col-line">
+                                    <span>[Key] order_id</span> <span class="wire-badge">INT</span>
+                                </div>
+                                <div class="col-line">
+                                    <span>[Key] user_id (FK)</span> <span class="wire-badge">INT</span>
+                                </div>
+                                <div class="col-line">
+                                    <span>[T] total_amount</span> <span class="wire-badge">DECIMAL</span>
+                                </div>
+                                <div class="col-line">
+                                    <span>[T] order_date</span> <span class="wire-badge">TIMESTAMP</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- End Card 2 -->
+
+            </section>
+
+        </div>
+    </div>
+
+</body>
+</html>

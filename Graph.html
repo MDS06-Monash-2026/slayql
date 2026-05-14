@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wireframe: Schema Graph Modal</title>
+    <style>
+        /* Base Wireframe Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            border-radius: 0; /* Strictly no rounded corners */
+        }
+
+        body, html {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden; /* Lock body */
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            line-height: 1.6; /* Breathable line height */
+        }
+
+        /* Core Wireframe Borders */
+        .wire-border { border: 1px solid #000000; }
+        .wire-border-b { border-bottom: 1px solid #000000; }
+        .wire-border-l { border-left: 1px solid #000000; }
+        .wire-border-r { border-right: 1px solid #000000; }
+        .wire-border-t { border-top: 1px solid #000000; }
+
+        /* Grayscale Palette */
+        .bg-white { background-color: #ffffff; }
+        .bg-gray-50 { background-color: #f9f9f9; }
+        .bg-gray-100 { background-color: #f0f0f0; }
+        .bg-gray-200 { background-color: #e5e5e5; }
+        
+        .text-muted { color: #666666; }
+
+        /* Flexbox Utilities */
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .flex-row { flex-direction: row; }
+        .flex-1 { flex: 1; min-height: 0; min-width: 0; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+
+        /* Spacing */
+        .p-2 { padding: 0.5rem; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .p-8 { padding: 2rem; }
+        
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .px-8 { padding-left: 2rem; padding-right: 2rem; }
+        .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+        
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+        
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mt-4 { margin-top: 1rem; }
+
+        /* Typography */
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-base { font-size: 1rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.5rem; }
+        .font-bold { font-weight: bold; }
+        .font-mono { font-family: monospace; }
+        .uppercase { text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Buttons & Placeholders */
+        .wire-btn {
+            border: 1px solid #000;
+            padding: 8px 16px;
+            font-size: 0.875rem;
+            font-weight: bold;
+            background-color: #ffffff;
+            cursor: pointer;
+            text-align: center;
+        }
+        .wire-btn:hover { background-color: #f0f0f0; }
+
+        .wire-badge {
+            border: 1px solid #000;
+            padding: 4px 8px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            background-color: #f5f5f5;
+            text-transform: uppercase;
+        }
+
+        .img-placeholder {
+            border: 1px solid #000000;
+            background: 
+                linear-gradient(to top right, transparent calc(50% - 0.5px), #000 50%, transparent calc(50% + 0.5px)),
+                linear-gradient(to bottom right, transparent calc(50% - 0.5px), #000 50%, transparent calc(50% + 0.5px));
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Specific Layouts */
+        .modal-overlay {
+            width: 100vw;
+            height: 100vh;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar {
+            width: 360px;
+            background-color: #f9f9f9;
+            overflow-y: auto;
+        }
+
+        .col-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            border-bottom: 1px solid #eaeaea;
+            padding-bottom: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        /* SVG Graph Styling */
+        svg circle {
+            stroke: #000;
+            stroke-width: 2px;
+            fill: #fff;
+        }
+        svg circle.hub {
+            fill: #e5e5e5;
+            stroke-width: 3px;
+        }
+        svg circle.selected {
+            stroke-width: 4px;
+            fill: #f0f0f0;
+            stroke-dasharray: 4;
+        }
+        svg line {
+            stroke: #000;
+            stroke-width: 2px;
+        }
+        svg text {
+            font-family: monospace;
+            font-size: 14px;
+            font-weight: bold;
+            text-anchor: middle;
+            fill: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="modal-overlay">
+        
+        <!-- ================= HEADER ================= -->
+        <header class="flex flex-row justify-between items-center px-8 py-4 wire-border-b bg-gray-50 shrink-0">
+            <div class="flex items-center gap-4">
+                <div class="img-placeholder" style="width: 48px; height: 48px;">
+                    <span style="background:#fff; padding:2px; font-size:10px; border:1px solid #000;">ICON</span>
+                </div>
+                <div class="flex-col">
+                    <div class="flex items-center gap-3">
+                        <h1 class="text-xl font-bold">prod_ecommerce_dump_2025</h1>
+                        <span class="wire-badge">NEW</span>
+                    </div>
+                    <p class="text-sm font-mono text-muted mt-1">Schema graph · 5 tables · 4 relationships</p>
+                </div>
+            </div>
+            
+            <button class="wire-btn" title="Close">
+                [X] Close
+            </button>
+        </header>
+
+        <!-- ================= OPTIONAL BANNER ================= -->
+        <div class="wire-border-b bg-gray-100 px-8 py-3 flex items-center gap-3 shrink-0">
+            <span class="font-bold text-sm">[Flash Icon]</span>
+            <span class="text-sm font-mono">Schema parsed. Topology graph generated automatically.</span>
+        </div>
+
+        <!-- ================= MAIN CONTENT SPLIT ================= -->
+        <div class="flex flex-row flex-1 overflow-hidden">
+            
+            <!-- GRAPH CANVAS AREA -->
+            <main class="flex-1 flex items-center justify-center bg-white relative">
+                <!-- Watermark / Background grid representation -->
+                <div style="position:absolute; top:1rem; left:1rem; color:#ccc; font-family:monospace; font-size:12px;">
+                    Graph Visualization Area (Pan / Zoom)
+                </div>
+
+                <!-- SVG Wireframe Graph -->
+                <svg width="600" height="500" viewBox="0 0 600 500">
+                    <!-- Edges -->
+                    <line x1="300" y1="250" x2="150" y2="150" />
+                    <line x1="300" y1="250" x2="450" y2="150" />
+                    <line x1="300" y1="250" x2="150" y2="350" />
+                    <line x1="300" y1="250" x2="450" y2="350" />
+
+                    <!-- Nodes -->
+                    <!-- Top Left -->
+                    <g transform="translate(150, 150)">
+                        <circle r="40" />
+                        <text y="4">products</text>
+                        <text y="60" style="font-size:10px; fill:#666;">6 cols</text>
+                    </g>
+                    <!-- Top Right -->
+                    <g transform="translate(450, 150)">
+                        <circle r="40" />
+                        <text y="4">users</text>
+                        <text y="60" style="font-size:10px; fill:#666;">5 cols</text>
+                    </g>
+                    <!-- Bottom Left -->
+                    <g transform="translate(150, 350)">
+                        <circle r="40" />
+                        <text y="4">payments</text>
+                        <text y="60" style="font-size:10px; fill:#666;">4 cols</text>
+                    </g>
+                    <!-- Bottom Right -->
+                    <g transform="translate(450, 350)">
+                        <circle r="40" />
+                        <text y="4">reviews</text>
+                        <text y="60" style="font-size:10px; fill:#666;">3 cols</text>
+                    </g>
+                    <!-- Center Hub (Selected) -->
+                    <g transform="translate(300, 250)">
+                        <circle r="50" class="hub selected" />
+                        <text y="4">orders</text>
+                        <text y="70" style="font-size:10px; fill:#666;">8 cols</text>
+                    </g>
+                </svg>
+            </main>
+
+            <!-- RIGHT SIDEBAR: DETAILS PANEL -->
+            <aside class="sidebar wire-border-l flex flex-col p-8">
+                
+                <!-- Sidebar Header -->
+                <div class="mb-8 border-b pb-4" style="border-bottom: 1px solid #000;">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="font-bold text-lg">[Table Icon]</span>
+                        <h2 class="text-lg font-bold font-mono">orders</h2>
+                    </div>
+                    <p class="text-sm font-mono text-muted">8 columns · ~10,000 rows</p>
+                </div>
+
+                <!-- Columns Section -->
+                <div class="mb-8">
+                    <p class="text-xs font-bold uppercase tracking-wider text-muted mb-4">Columns</p>
+                    <div class="wire-border bg-white flex flex-col" style="max-height: 300px; overflow-y:auto;">
+                        <div class="col-line p-3" style="margin:0;">
+                            <span>[PK Icon] order_id</span>
+                            <span class="wire-badge">INT</span>
+                        </div>
+                        <div class="col-line p-3" style="margin:0;">
+                            <span>[FK Icon] user_id</span>
+                            <span class="wire-badge">INT</span>
+                        </div>
+                        <div class="col-line p-3" style="margin:0;">
+                            <span>[FK Icon] product_id</span>
+                            <span class="wire-badge">INT</span>
+                        </div>
+                        <div class="col-line p-3" style="margin:0;">
+                            <span>[T Icon] amount</span>
+                            <span class="wire-badge">DECIMAL</span>
+                        </div>
+                        <div class="col-line p-3" style="margin:0;">
+                            <span>[T Icon] status</span>
+                            <span class="wire-badge">VARCHAR</span>
+                        </div>
+                        <div class="col-line p-3 border-0" style="margin:0;">
+                            <span>[T Icon] created_at</span>
+                            <span class="wire-badge">TIMESTAMP</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Relationships Section -->
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-wider text-muted mb-4">Relationships</p>
+                    <div class="flex flex-col gap-2">
+                        
+                        <button class="wire-btn flex items-center justify-between">
+                            <span class="text-xs font-mono text-muted">FK &rarr;</span>
+                            <span class="text-sm font-mono font-bold">users</span>
+                            <span class="text-muted">&rarr;</span>
+                        </button>
+                        
+                        <button class="wire-btn flex items-center justify-between">
+                            <span class="text-xs font-mono text-muted">FK &rarr;</span>
+                            <span class="text-sm font-mono font-bold">products</span>
+                            <span class="text-muted">&rarr;</span>
+                        </button>
+                        
+                        <button class="wire-btn flex items-center justify-between bg-gray-100">
+                            <span class="text-xs font-mono text-muted">&larr; FK</span>
+                            <span class="text-sm font-mono font-bold">payments</span>
+                            <span class="text-muted">&larr;</span>
+                        </button>
+
+                    </div>
+                </div>
+
+            </aside>
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wireframe: SOTA Comparison & Radar</title>
+    <style>
+        /* Base Wireframe Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            border-radius: 0 !important; /* Strictly no rounded corners */
+        }
+
+        body, html {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden; /* Lock body */
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            line-height: 1.6;
+        }
+
+        /* Core Wireframe Borders */
+        .wire-border { border: 1px solid #000000; }
+        .wire-border-2 { border: 2px solid #000000; }
+        .wire-border-b { border-bottom: 1px solid #000000; }
+        .wire-border-r { border-right: 1px solid #000000; }
+        .wire-border-t { border-top: 1px solid #000000; }
+        .wire-border-l { border-left: 1px solid #000000; }
+
+        /* Grayscale Palette */
+        .bg-white { background-color: #ffffff; }
+        .bg-gray-50 { background-color: #fafafa; }
+        .bg-gray-100 { background-color: #f0f0f0; }
+        .bg-gray-200 { background-color: #e5e5e5; }
+        .bg-gray-800 { background-color: #333333; color: #ffffff; }
+        
+        .text-muted { color: #666666; }
+
+        /* Flexbox Utilities */
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .flex-row { flex-direction: row; }
+        .flex-1 { flex: 1; min-height: 0; min-width: 0; }
+        .flex-wrap { flex-wrap: wrap; }
+        .items-center { align-items: center; }
+        .items-start { align-items: flex-start; }
+        .items-end { align-items: flex-end; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+
+        /* Generous Spacing */
+        .p-2 { padding: 0.5rem; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .p-8 { padding: 2rem; }
+        .p-10 { padding: 2.5rem; }
+        
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+        
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+        .gap-8 { gap: 2rem; }
+        
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mb-10 { margin-bottom: 2.5rem; }
+
+        .mt-4 { margin-top: 1rem; }
+        .mt-8 { margin-top: 2rem; }
+
+        /* Typography */
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-base { font-size: 1rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.5rem; }
+        .text-2xl { font-size: 2rem; }
+        .text-3xl { font-size: 2.5rem; }
+        .font-bold { font-weight: bold; }
+        .font-mono { font-family: "Courier New", Courier, monospace; }
+        .uppercase { text-transform: uppercase; letter-spacing: 0.05em; }
+        .text-center { text-align: center; }
+
+        /* Authentic Wireframe Image Placeholder */
+        .img-placeholder {
+            border: 1px solid #000000;
+            background: 
+                linear-gradient(to top right, transparent calc(50% - 0.5px), #000 50%, transparent calc(50% + 0.5px)),
+                linear-gradient(to bottom right, transparent calc(50% - 0.5px), #000 50%, transparent calc(50% + 0.5px));
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Buttons & Badges */
+        .wire-btn {
+            border: 1px solid #000;
+            padding: 8px 16px;
+            font-size: 0.875rem;
+            font-weight: bold;
+            background-color: #ffffff;
+            cursor: pointer;
+            text-align: left;
+        }
+        .wire-badge {
+            border: 1px solid #000;
+            padding: 4px 10px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            background-color: #f5f5f5;
+            text-transform: uppercase;
+        }
+        .wire-progress {
+            width: 150px;
+            height: 12px;
+            border: 1px solid #000;
+            background-color: #fff;
+            position: relative;
+        }
+        .wire-progress-fill {
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 65%; /* Arbitrary progress */
+            background-color: #ccc;
+            border-right: 1px solid #000;
+        }
+
+        /* Layout specific */
+        .scroll-container {
+            overflow-y: auto;
+            width: 100%;
+            height: 100%;
+            padding: 4rem; 
+            display: flex;
+            justify-content: center;
+        }
+        .content-max {
+            width: 100%;
+            max-width: 1300px; /* Wide enough for the 3fr/2fr split */
+        }
+
+        /* Grid */
+        .grid-radar-split { 
+            display: grid; 
+            grid-template-columns: 3fr 2fr; /* Radar vs Terminal */
+        }
+        .grid-legend {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        /* Terminal Line Styles */
+        .term-line { display: flex; gap: 0.5rem; margin-bottom: 0.25rem; }
+        .term-prefix { font-weight: bold; width: 65px; flex-shrink: 0; }
+
+        /* SVG Wireframe Fixes */
+        svg text { font-family: "Courier New", Courier, monospace; font-size: 11px; fill: #000; font-weight: bold;}
+    </style>
+</head>
+<body>
+
+    <div class="scroll-container bg-white">
+        <div class="content-max flex-col">
+
+            <!-- ================= PAGE HEADER ================= -->
+            <header class="flex flex-col gap-4 mb-10">
+                <div class="wire-badge" style="width: fit-content;">[O] REPLICATION TRACKER</div>
+                <h1 class="text-3xl font-bold">Model Evaluation</h1>
+                <p class="text-base text-muted w-full" style="max-width: 800px;">
+                    Real-time R&D telemetry tracking <b style="color:#000;">SlayQL</b> against 4 replicated SOTA baselines across <b style="color:#000;">4 evaluation axes</b> — Execution Accuracy, Schema Recall, Token Efficiency & Speed — validated strictly on <b style="color:#000;">Spider 2.0-Lite</b> and <b style="color:#000;">BIRD</b>.
+                </p>
+            </header>
+
+            <!-- ================= R&D COMMAND CENTER ================= -->
+            <section class="wire-border-2 bg-gray-50 flex flex-col mb-10">
+                
+                <!-- Command Center Header (Top Bar) -->
+                <div class="wire-border-b px-8 py-6 flex flex-row justify-between items-center bg-white">
+                    
+                    <div class="flex items-center gap-4">
+                        <div class="img-placeholder" style="width: 48px; height: 48px;">
+                            <span style="font-size:10px; font-weight:bold; background:#fff; padding:2px; border:1px solid #000;">RADAR</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-3">
+                                <h2 class="text-lg font-bold">R&D Command Center</h2>
+                                <span class="wire-badge bg-gray-200">[v] LIVE</span>
+                            </div>
+                            <p class="text-xs font-mono text-muted mt-1">Multi-axis benchmarking · Real-time evaluation telemetry</p>
+                        </div>
+                    </div>
+
+                    <!-- Progress Strip -->
+                    <div class="flex items-center gap-6">
+                        <div class="text-xs font-mono text-muted">
+                            RUN <b style="color:#000;">14 / 14</b>
+                        </div>
+                        <div class="text-xs font-mono text-muted">
+                            QUERIES <b style="color:#000;">355 / 547</b>
+                        </div>
+                        <div class="wire-progress">
+                            <div class="wire-progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Command Center Body (3fr / 2fr Split) -->
+                <div class="grid-radar-split flex-1">
+                    
+                    <!-- LEFT PANE: RADAR CHART -->
+                    <div class="p-8 flex flex-col bg-white">
+                        
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-wider text-muted font-mono">Performance Radar</p>
+                                <p class="text-sm text-muted mt-1">Click a chip to toggle its profile</p>
+                            </div>
+                            <div class="text-xs font-mono text-muted">4 axes · 5 models · normalized 0-100</div>
+                        </div>
+
+                        <!-- Radar Graphic Placeholder -->
+                        <div class="flex justify-center items-center mb-8">
+                            <svg width="340" height="340" viewBox="0 0 340 340">
+                                <!-- Background circles -->
+                                <circle cx="170" cy="170" r="120" fill="none" stroke="#e5e5e5" stroke-width="1" />
+                                <circle cx="170" cy="170" r="90" fill="none" stroke="#e5e5e5" stroke-width="1" stroke-dasharray="4 4" />
+                                <circle cx="170" cy="170" r="60" fill="none" stroke="#e5e5e5" stroke-width="1" stroke-dasharray="4 4" />
+                                <circle cx="170" cy="170" r="30" fill="none" stroke="#e5e5e5" stroke-width="1" stroke-dasharray="4 4" />
+                                
+                                <!-- Axes -->
+                                <line x1="170" y1="170" x2="170" y2="30" stroke="#ccc" stroke-width="1" />
+                                <line x1="170" y1="170" x2="170" y2="310" stroke="#ccc" stroke-width="1" />
+                                <line x1="170" y1="170" x2="30" y2="170" stroke="#ccc" stroke-width="1" />
+                                <line x1="170" y1="170" x2="310" y2="170" stroke="#ccc" stroke-width="1" />
+
+                                <!-- Labels -->
+                                <text x="170" y="20" text-anchor="middle">EXECUTION ACCURACY</text>
+                                <text x="170" y="330" text-anchor="middle">TOKEN EFFICIENCY</text>
+                                <text x="330" y="174" text-anchor="end">SCHEMA RECALL</text>
+                                <text x="10" y="174" text-anchor="start">SPEED</text>
+
+                                <!-- Mock Polygons -->
+                                <!-- Baseline Model (Dashed) -->
+                                <polygon points="170,80 260,170 170,230 110,170" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5 5" />
+                                <!-- Our Model (Solid, Bold) -->
+                                <polygon points="170,50 280,170 170,200 70,170" fill="rgba(0,0,0,0.05)" stroke="#000" stroke-width="3" />
+                                
+                                <!-- Vertices for Our Model -->
+                                <circle cx="170" cy="50" r="4" fill="#000" />
+                                <circle cx="280" cy="170" r="4" fill="#000" />
+                                <circle cx="170" cy="200" r="4" fill="#000" />
+                                <circle cx="70" cy="170" r="4" fill="#000" />
+                            </svg>
+                        </div>
+
+                        <!-- Legend Chips -->
+                        <div class="grid-legend mt-auto">
+                            <!-- Chip 1: SlayQL -->
+                            <div class="wire-border bg-gray-100 p-3 flex items-start gap-3">
+                                <div class="wire-border bg-white" style="width:14px; height:14px; margin-top:2px;">
+                                    <div style="width:8px; height:8px; margin:2px; background:#000;"></div>
+                                </div>
+                                <div class="flex flex-col flex-1">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <b class="text-sm">SlayQL</b>
+                                        <span class="wire-badge bg-white">OURS</span>
+                                    </div>
+                                    <div class="text-xs font-mono text-muted flex justify-between">
+                                        <span>EX <b style="color:#000;">82.5</b></span>
+                                        <span>S-R <b style="color:#000;">88</b></span>
+                                        <span>TOK <b style="color:#000;">82</b></span>
+                                        <span>SPD <b style="color:#000;">85</b></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Chip 2: AutoLink -->
+                            <div class="wire-border bg-white p-3 flex items-start gap-3">
+                                <div class="wire-border bg-white" style="width:14px; height:14px; margin-top:2px;">
+                                    <div style="width:8px; height:8px; margin:2px; background:#ccc;"></div>
+                                </div>
+                                <div class="flex flex-col flex-1">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <b class="text-sm">AutoLink</b>
+                                    </div>
+                                    <div class="text-xs font-mono text-muted flex justify-between">
+                                        <span>EX <b style="color:#000;">45.3</b></span>
+                                        <span>S-R <b style="color:#000;">76</b></span>
+                                        <span>TOK <b style="color:#000;">78</b></span>
+                                        <span>SPD <b style="color:#000;">80</b></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chip 3: MCTS-SQL -->
+                            <div class="wire-border bg-white p-3 flex items-start gap-3">
+                                <div class="wire-border bg-white" style="width:14px; height:14px; margin-top:2px;">
+                                    <div style="width:8px; height:8px; margin:2px; background:#ccc;"></div>
+                                </div>
+                                <div class="flex flex-col flex-1">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <b class="text-sm">MCTS-SQL</b>
+                                    </div>
+                                    <div class="text-xs font-mono text-muted flex justify-between">
+                                        <span>EX <b style="color:#000;">55.3</b></span>
+                                        <span>S-R <b style="color:#000;">65</b></span>
+                                        <span>TOK <b style="color:#000;">32</b></span>
+                                        <span>SPD <b style="color:#000;">28</b></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chip 4: RetrySQL -->
+                            <div class="wire-border bg-white p-3 flex items-start gap-3">
+                                <div class="wire-border bg-white" style="width:14px; height:14px; margin-top:2px;"></div> <!-- Unchecked -->
+                                <div class="flex flex-col flex-1" style="opacity:0.5;">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <b class="text-sm">RetrySQL</b>
+                                    </div>
+                                    <div class="text-xs font-mono text-muted flex justify-between">
+                                        <span>EX <b style="color:#000;">35.7</b></span>
+                                        <span>S-R <b style="color:#000;">58</b></span>
+                                        <span>TOK <b style="color:#000;">48</b></span>
+                                        <span>SPD <b style="color:#000;">52</b></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT PANE: LIVE EVALUATION TERMINAL -->
+                    <div class="wire-border-l bg-gray-50 flex flex-col h-full">
+                        
+                        <!-- Terminal Header -->
+                        <div class="wire-border-b bg-gray-200 px-4 py-3 flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-lg leading-none" style="margin-top:-4px;">>_</span>
+                                <span class="text-xs font-mono uppercase font-bold tracking-widest text-muted">eval-harness · spider2-lite</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <div class="wire-border bg-white" style="width:12px; height:12px;"></div>
+                                <div class="wire-border bg-white" style="width:12px; height:12px;"></div>
+                                <div class="wire-border bg-white" style="width:12px; height:12px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Status Strip -->
+                        <div class="wire-border-b bg-white px-4 py-2 flex items-center gap-4 text-xs font-mono">
+                            <span style="font-weight:bold;">[✓] 312</span>
+                            <span style="font-weight:bold;">[✗] 43</span>
+                            <span class="text-muted">|</span>
+                            <span>SUCCESS <b style="font-size:14px;">87.8%</b></span>
+                        </div>
+
+                        <!-- Log Body -->
+                        <div class="p-4 flex-1 overflow-y-auto bg-gray-50 text-xs font-mono" style="line-height:1.8;">
+                            <div class="term-line">
+                                <span class="term-prefix text-muted">[SYS]</span>
+                                <span>Heartbeat OK · GPU=67% · mem=15.0/24 GB</span>
+                            </div>
+                            <div class="term-line">
+                                <span class="term-prefix text-muted">[INFO]</span>
+                                <span>Loading test split → spider2.business_metrics</span>
+                            </div>
+                            <div class="term-line">
+                                <span class="term-prefix text-muted">[EVAL]</span>
+                                <span>Q#0353 [BigQuery] spider2.hr_payroll.departments</span>
+                            </div>
+                            <div class="term-line">
+                                <span class="term-prefix text-muted">[STEP]</span>
+                                <span>Schema linking → matched 4/5 candidate tables</span>
+                            </div>
+                            <div class="term-line">
+                                <span class="term-prefix" style="color:#000;">[ ✓ ]</span>
+                                <span>Q#0353 validated · exec=320ms · token=240 · SlayQL</span>
+                            </div>
+                            <div class="term-line">
+                                <span class="term-prefix text-muted">[EVAL]</span>
+                                <span>Q#0354 [Snowflake] bird.california_schools.users</span>
+                            </div>
+                            <div class="term-line">
+                                <span class="term-prefix text-muted">[STEP]</span>
+                                <span>Generation → 145 tokens · top_p=0.9</span>
+                            </div>
+                            <div class="term-line">
+                                <span class="term-prefix" style="color:#000;">[ ! ]</span>
+                                <span>Q#0354 ambiguous join on `school_id` → retry</span>
+                            </div>
+                            <div class="term-line">
+                                <span class="term-prefix text-muted">[STEP]</span>
+                                <span>ReFoRCE feedback loop iter 2/4</span>
+                            </div>
+                            <div class="term-line">
+                                <span class="term-prefix" style="color:#000;">[ ✗ ]</span>
+                                <span style="font-weight:bold; text-decoration:underline;">Q#0354 exec error: GROUP BY required</span>
+                            </div>
+                            <div class="term-line">
+                                <span class="term-prefix text-muted">[METRICS]</span>
+                                <span>SlayQL :: EX=82.5% · S-R=0.88 · TokEff=82 · Speed=85</span>
+                            </div>
+                            <div class="term-line mt-4">
+                                <span class="term-prefix" style="font-weight:bold;">$</span>
+                                <span style="font-weight:bold;">▎</span> <!-- Blinking Cursor Representation -->
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ================= FOOTER DISCLAIMER ================= -->
+            <footer class="flex flex-col items-center justify-center gap-4 mt-12 mb-8">
+                <div class="wire-border-t w-full" style="max-width: 200px;"></div>
+                <p class="text-xs font-mono uppercase tracking-widest text-muted text-center">
+                    Validation conducted internally • Replicated scores may vary slightly<br>from proposed paper claims due to hardware & strictness constraints
+                </p>
+            </footer>
+
+        </div>
+    </div>
+
+</body>
+</html>

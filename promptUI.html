@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Low-Fidelity Wireframe: Text-to-SQL Interface</title>
+    <style>
+        /* Base Wireframe Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            border-radius: 0; /* Strictly no rounded corners */
+        }
+
+        body, html {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden; /* Prevents whole-page scrolling, forces full-screen lock */
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            line-height: 1.5;
+        }
+
+        /* Core Wireframe Borders */
+        .wire-border { border: 1px solid #000000; }
+        .wire-border-b { border-bottom: 1px solid #000000; }
+        .wire-border-r { border-right: 1px solid #000000; }
+        .wire-border-t { border-top: 1px solid #000000; }
+
+        /* Grayscale Palette */
+        .bg-white { background-color: #ffffff; }
+        .bg-gray-50 { background-color: #fafafa; }
+        .bg-gray-100 { background-color: #f5f5f5; }
+        .bg-gray-200 { background-color: #e0e0e0; }
+        .bg-gray-300 { background-color: #cccccc; }
+
+        /* Flexbox Layout Utilities */
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .flex-row { flex-direction: row; }
+        .flex-1 { flex: 1; min-height: 0; min-width: 0; }
+        .items-center { align-items: center; }
+        .items-start { align-items: flex-start; }
+        .justify-between { justify-content: space-between; }
+        .justify-end { justify-content: flex-end; }
+        .justify-center { justify-content: center; }
+        
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+
+        /* Spacing */
+        .p-2 { padding: 0.5rem; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+
+        /* Typography Placeholders */
+        .text-sm { font-size: 0.75rem; color: #555555; }
+        .text-base { font-size: 0.875rem; color: #000000; }
+        .text-lg { font-size: 1.125rem; }
+        .font-bold { font-weight: bold; }
+        .uppercase { text-transform: uppercase; letter-spacing: 0.05em; }
+        .text-center { text-align: center; }
+
+        /* Text Lines (Simulated Paragraphs) */
+        .text-line { height: 12px; background-color: #cccccc; margin-bottom: 8px; }
+        .text-line.dark { background-color: #999999; }
+        .w-20 { width: 20%; }
+        .w-30 { width: 30%; }
+        .w-50 { width: 50%; }
+        .w-70 { width: 70%; }
+        .w-90 { width: 90%; }
+
+        /* Authentic Wireframe Image Placeholder (Box with an X) */
+        .img-placeholder {
+            border: 1px solid #000000;
+            background: 
+                linear-gradient(to top right, transparent calc(50% - 0.5px), #000 50%, transparent calc(50% + 0.5px)),
+                linear-gradient(to bottom right, transparent calc(50% - 0.5px), #000 50%, transparent calc(50% + 0.5px));
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .img-placeholder-text {
+            background-color: #f0f0f0;
+            padding: 2px 6px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            border: 1px solid #000;
+        }
+
+        /* Specific Component Sizing */
+        .sidebar { width: 280px; }
+        .avatar { width: 48px; height: 48px; }
+        .logo-box { width: 140px; height: 48px; }
+        
+        .nav-item { 
+            padding: 12px 16px; 
+            text-align: left; 
+            border: 1px solid #000; 
+            font-weight: bold;
+        }
+
+        .dropdown {
+            border: 1px solid #000;
+            padding: 8px 16px;
+            min-width: 150px;
+            display: flex;
+            justify-content: space-between;
+            background-color: #ffffff;
+        }
+
+        /* Chat Area Scaffolding */
+        .chat-scroll-area {
+            overflow-y: auto; /* This is the ONLY element that scrolls */
+            flex: 1;
+        }
+        .message-row { display: flex; width: 100%; margin-bottom: 2rem; }
+        .message-user { justify-content: flex-end; }
+        .message-sys { justify-content: flex-start; }
+        
+        .bubble-user {
+            width: 60%;
+            border: 1px solid #000;
+            background-color: #f5f5f5;
+        }
+        .bubble-sys {
+            width: 85%;
+            border: 1px solid #000;
+            background-color: #ffffff;
+            box-shadow: 4px 4px 0px #e0e0e0; /* Blocky wireframe depth, not a soft shadow */
+        }
+
+        /* Tables */
+        .wire-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #000;
+        }
+        .wire-table th {
+            background-color: #e0e0e0;
+            text-align: left;
+            padding: 12px;
+            font-size: 0.875rem;
+            border: 1px solid #000;
+            font-weight: bold;
+        }
+        .wire-table td {
+            padding: 12px;
+            font-size: 0.875rem;
+            border: 1px solid #000;
+        }
+
+        /* Buttons */
+        .wire-btn {
+            border: 1px solid #000;
+            padding: 8px 16px;
+            font-size: 0.875rem;
+            font-weight: bold;
+            background-color: #ffffff;
+        }
+        .wire-btn.primary { background-color: #e0e0e0; }
+
+    </style>
+</head>
+<body>
+
+    <div class="flex flex-row w-full h-full">
+        
+        <!-- ================= SIDEBAR ================= -->
+        <aside class="sidebar flex flex-col wire-border-r bg-gray-50 z-10">
+            
+            <!-- Branding -->
+            <div class="p-6 wire-border-b flex justify-between items-center bg-white">
+                <div class="img-placeholder logo-box">
+                    <span class="img-placeholder-text">LOGO</span>
+                </div>
+                <div class="wire-border px-3 py-1 font-bold bg-gray-100">&lt;&lt;</div>
+            </div>
+
+            <!-- User Profile -->
+            <div class="p-6 wire-border-b bg-white">
+                <div class="flex flex-row items-center gap-4">
+                    <div class="img-placeholder avatar"></div>
+                    <div class="flex-col flex-1">
+                        <div class="text-base font-bold">User Full Name</div>
+                        <div class="text-sm uppercase mt-2">Role / Title Label</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex flex-col gap-2 p-6 flex-1 bg-gray-50">
+                <div class="text-sm uppercase font-bold mb-2">Navigation Group</div>
+                <div class="nav-item bg-gray-200">Menu Item 1 (Active)</div>
+                <div class="nav-item bg-white">Menu Item 2</div>
+                <div class="nav-item bg-white">Menu Item 3</div>
+                <div class="nav-item bg-white">Menu Item 4</div>
+            </nav>
+
+            <!-- Bottom Settings/Logout -->
+            <div class="p-6 wire-border-t bg-white">
+                <div class="nav-item bg-gray-100 text-center">Settings / Profile</div>
+            </div>
+        </aside>
+
+        <!-- ================= MAIN CONTENT ================= -->
+        <main class="flex-1 flex flex-col bg-white">
+            
+            <!-- Top Header -->
+            <header class="flex flex-row justify-between items-center p-4 wire-border-b bg-gray-50 z-10">
+                <div class="flex flex-row items-center gap-4">
+                    <div class="wire-border px-3 py-1 text-sm font-bold bg-white">Version Label</div>
+                </div>
+                
+                <!-- Dropdown Selectors -->
+                <div class="flex flex-row gap-4">
+                    <div class="dropdown">
+                        <span>Dataset Option</span>
+                        <span>&#9662;</span>
+                    </div>
+                    <div class="dropdown">
+                        <span>Framework Option</span>
+                        <span>&#9662;</span>
+                    </div>
+                    <div class="dropdown">
+                        <span>Model Option</span>
+                        <span>&#9662;</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Scrollable Chat Area -->
+            <div class="chat-scroll-area p-6">
+                <div class="w-full flex flex-col" style="max-width: 900px; margin: 0 auto;">
+                    
+                    <!-- USER PROMPT -->
+                    <div class="message-row message-user gap-4">
+                        <div class="bubble-user p-6">
+                            <div class="text-sm font-bold uppercase mb-4 text-line dark w-30" style="background:none;">User Query:</div>
+                            <div class="text-line w-full"></div>
+                            <div class="text-line w-90"></div>
+                            <div class="text-line w-50"></div>
+                        </div>
+                        <div class="img-placeholder avatar shrink-0"></div>
+                    </div>
+
+                    <!-- SYSTEM RESPONSE -->
+                    <div class="message-row message-sys gap-4">
+                        <div class="img-placeholder avatar shrink-0">
+                            <span class="img-placeholder-text">SYS</span>
+                        </div>
+                        
+                        <div class="bubble-sys p-6 flex flex-col gap-6">
+                            
+                            <!-- Reasoning Accordion -->
+                            <div class="wire-border p-3 bg-gray-50 flex justify-between items-center">
+                                <span class="font-bold text-sm uppercase">[+] Reasoning Steps (Collapsed)</span>
+                            </div>
+
+                            <!-- Summary Paragraph -->
+                            <div>
+                                <div class="text-sm font-bold uppercase mb-2">Query Summary</div>
+                                <div class="wire-border p-4 bg-gray-50">
+                                    <div class="text-line w-full"></div>
+                                    <div class="text-line w-90"></div>
+                                    <div class="text-line w-70"></div>
+                                </div>
+                            </div>
+
+                            <!-- Generated Code Block -->
+                            <div>
+                                <div class="text-sm font-bold uppercase mb-2">Generated Code (SQL)</div>
+                                <div class="wire-border p-4 bg-gray-200" style="min-height: 120px;">
+                                    <div class="text-line dark w-50"></div>
+                                    <div class="text-line dark w-70"></div>
+                                    <div class="text-line dark w-30"></div>
+                                    <div class="text-line dark w-90"></div>
+                                    <div class="text-line dark w-40"></div>
+                                    <div class="wire-border px-2 py-1 bg-white" style="float:right; margin-top: -80px; font-size: 0.75rem;">Copy Icon</div>
+                                </div>
+                            </div>
+
+                            <!-- Action Bar -->
+                            <div class="flex flex-row gap-4 items-center">
+                                <div class="wire-btn">Action 1 (Copy)</div>
+                                <div class="wire-btn">Action 2 (Export)</div>
+                                <div class="flex-1"></div>
+                                <div class="wire-btn primary">Action 3 (Execute)</div>
+                                <div class="wire-btn">Toggle View (Table/Chart)</div>
+                            </div>
+
+                            <!-- Data Table Results -->
+                            <div>
+                                <div class="text-sm font-bold uppercase mb-2">Execution Results Data</div>
+                                <table class="wire-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Column Header 1 (Type)</th>
+                                            <th>Column Header 2 (Type)</th>
+                                            <th>Column Header 3 (Type)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Data Row 1, Cell A</td>
+                                            <td>Data Row 1, Cell B</td>
+                                            <td>Data Row 1, Cell C</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Data Row 2, Cell A</td>
+                                            <td>Data Row 2, Cell B</td>
+                                            <td>Data Row 2, Cell C</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Data Row 3, Cell A</td>
+                                            <td>Data Row 3, Cell B</td>
+                                            <td>Data Row 3, Cell C</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Data Row 4, Cell A</td>
+                                            <td>Data Row 4, Cell B</td>
+                                            <td>Data Row 4, Cell C</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Bottom Input Field Fixed Area -->
+            <div class="p-6 wire-border-t bg-gray-100 z-10">
+                <div class="w-full flex flex-col wire-border bg-white" style="max-width: 900px; margin: 0 auto;">
+                    <textarea class="w-full p-4 text-base" style="min-height: 100px; resize: none; border: none; outline: none;" placeholder="Natural Language Input Placeholder Area..."></textarea>
+                    <div class="flex justify-end p-4 border-t" style="border-top: 1px solid #e0e0e0;">
+                        <div class="wire-btn primary px-6">Submit Prompt</div>
+                    </div>
+                </div>
+                <div class="text-center text-sm mt-4 text-line w-30 mx-auto" style="background: none;">
+                    System Disclaimer Text Label Placeholder
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+</body>
+</html>
