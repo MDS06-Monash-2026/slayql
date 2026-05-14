@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wireframe 1: Prompt & Thinking</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; border-radius: 0; }
+        body, html { width: 100vw; height: 100vh; overflow: hidden; font-family: Arial, sans-serif; background-color: #fafafa; color: #000; line-height: 1.6; }
+        .wire-border { border: 1px solid #000; }
+        .wire-border-b { border-bottom: 1px solid #000; }
+        .wire-border-t { border-top: 1px solid #000; }
+        .bg-white { background-color: #ffffff; }
+        .bg-gray-50 { background-color: #f9f9f9; }
+        .bg-gray-100 { background-color: #f0f0f0; }
+        .text-muted { color: #666; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .flex-row { flex-direction: row; }
+        .flex-1 { flex: 1; min-height: 0; min-width: 0; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .p-4 { padding: 1rem; } .p-6 { padding: 1.5rem; }
+        .gap-2 { gap: 0.5rem; } .gap-4 { gap: 1rem; } .gap-6 { gap: 1.5rem; }
+        .mb-2 { margin-bottom: 0.5rem; } .mb-4 { margin-bottom: 1rem; } .mb-6 { margin-bottom: 1.5rem; }
+        .text-sm { font-size: 0.875rem; } .text-base { font-size: 1rem; } .font-bold { font-weight: bold; }
+        .uppercase { text-transform: uppercase; letter-spacing: 0.05em; }
+        .img-placeholder { border: 1px solid #000; background: linear-gradient(to top right, transparent calc(50% - 0.5px), #000 50%, transparent calc(50% + 0.5px)), linear-gradient(to bottom right, transparent calc(50% - 0.5px), #000 50%, transparent calc(50% + 0.5px)); background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; }
+        .img-placeholder-text { background-color: #f0f0f0; padding: 2px 6px; font-weight: bold; font-size: 0.75rem; border: 1px solid #000; }
+        .avatar { width: 48px; height: 48px; flex-shrink: 0; }
+        .bubble-user { width: 70%; border: 1px solid #000; background-color: #f5f5f5; margin-left: auto; }
+        .bubble-sys { width: 85%; border: 1px solid #000; background-color: #ffffff; box-shadow: 4px 4px 0px #e0e0e0; }
+        .wire-btn { border: 1px solid #000; padding: 8px 16px; font-size: 0.875rem; font-weight: bold; background-color: #ffffff; cursor: pointer; }
+        .dropdown { border: 1px solid #000; padding: 8px 16px; min-width: 150px; display: flex; justify-content: space-between; background-color: #ffffff; }
+        .center-col { width: 100%; max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; height: 100%; }
+        .text-line { height: 12px; background-color: #cccccc; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <div class="flex flex-col h-full w-full">
+        <!-- Header -->
+        <header class="flex flex-row justify-between items-center p-4 wire-border-b bg-white z-10 shrink-0">
+            <div class="flex items-center gap-4">
+                <div class="img-placeholder" style="width: 120px; height: 36px;"><span class="img-placeholder-text">LOGO</span></div>
+                <div class="wire-border px-3 py-1 text-sm font-bold">v1.0.0</div>
+            </div>
+            <div class="flex flex-row gap-4">
+                <div class="dropdown"><span>Dataset Option</span><span>&#9662;</span></div>
+                <div class="dropdown"><span>Framework Option</span><span>&#9662;</span></div>
+                <div class="dropdown"><span>Model Option</span><span>&#9662;</span></div>
+            </div>
+        </header>
+
+        <!-- Main Chat Area -->
+        <main class="flex-1 flex flex-col bg-white overflow-hidden">
+            <div class="flex-1 overflow-y-auto p-6">
+                <div class="center-col justify-start gap-6 pt-4">
+                    
+                    <!-- USER PROMPT -->
+                    <div class="flex flex-row gap-4 justify-end w-full">
+                        <div class="bubble-user p-6">
+                            <div class="text-sm font-bold uppercase mb-2 text-muted">User Query:</div>
+                            <p class="text-base font-bold">Find total revenue by product category for the last 30 days, sorted by highest revenue.</p>
+                        </div>
+                        <div class="img-placeholder avatar"></div>
+                    </div>
+
+                    <!-- SYSTEM RESPONSE (THINKING) -->
+                    <div class="flex flex-row gap-4 w-full">
+                        <div class="img-placeholder avatar"><span class="img-placeholder-text">SYS</span></div>
+                        <div class="bubble-sys p-6 flex flex-col gap-4">
+                            
+                            <div class="wire-border p-4 bg-gray-50 flex flex-col gap-3">
+                                <span class="font-bold text-sm uppercase mb-2">Thinking Process...</span>
+                                <div class="flex items-center gap-3 text-sm font-bold">
+                                    <span style="font-family: monospace;">[&#10003;]</span> Analyzing natural language request
+                                </div>
+                                <div class="flex items-center gap-3 text-sm font-bold">
+                                    <span style="font-family: monospace;">[&#10003;]</span> Identifying relevant tables (products, order_items, orders)
+                                </div>
+                                <div class="flex items-center gap-3 text-sm font-bold">
+                                    <span style="font-family: monospace;">[&#10003;]</span> Resolving join relationships
+                                </div>
+                                <div class="flex items-center gap-3 text-sm text-muted">
+                                    <span style="font-family: monospace;">[&nbsp;&nbsp;]</span> Generating optimized SQL query... (Loading)
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Bottom Input -->
+            <div class="p-6 wire-border-t bg-gray-50 z-10 shrink-0">
+                <div class="center-col">
+                    <div class="w-full flex flex-col wire-border bg-white">
+                        <textarea class="w-full p-4 text-base" style="min-height: 80px; resize: none; border: none; outline: none;" placeholder="Ask a follow-up question..."></textarea>
+                        <div class="flex justify-end p-4 border-t" style="border-top: 1px solid #e0e0e0;">
+                            <div class="wire-btn" style="background-color: #e0e0e0;">Submit Prompt</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
